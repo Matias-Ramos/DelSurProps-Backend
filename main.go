@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Matias-Ramos/Inmobiliaria-backend-go/env/config"
+	"github.com/Matias-Ramos/Inmobiliaria-backend-go/env"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/lib/pq"
