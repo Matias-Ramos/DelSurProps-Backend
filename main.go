@@ -39,7 +39,7 @@ func fillBuildingDetails(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Garages,
 			&buildingObj.Superficie_cubierta,
 			&buildingObj.Superficie_total,
-			&buildingObj.Imagenes)
+			pq.Array(&buildingObj.Imagenes))
 		return buildingObj, err
 	case "Emprendimientos":
 		buildingObj := &VentureBuilding{Building: &Building{}}
@@ -55,7 +55,7 @@ func fillBuildingDetails(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Superficie_total,
 			&buildingObj.En_pozo,
 			&buildingObj.En_construccion,
-			&buildingObj.Imagenes)
+			pq.Array(&buildingObj.Imagenes))
 		return buildingObj, err
 	default:
 		return nil, fmt.Errorf("unsupported category: %s", category)
