@@ -4,12 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
-	"github.com/Matias-Ramos/Inmobiliaria-backend-go/env"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/joho/godotenv"
 	"github.com/lib/pq"
 )
 
@@ -106,11 +105,15 @@ func main() {
 	//******************************************
 	// SV, Credentials & DB Initialization.
 	sv := chi.NewRouter()
-	config.SetEnv()
-	user, pwd, db_name := config.GetEnv()
-	db, err := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", user, pwd, db_name))
-	if err != nil {
-		log.Fatal("DB initialization - ", err)
+	dbAuth, mapError := godotenv.Read(".env")
+	if mapError != nil {
+		fmt.Printf("Error loading .env into map[string]string - %s", mapError)
+		return
+	}
+	db, sqlErr := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", dbAuth["USER"], dbAuth["PWD"], dbAuth["DB_NAME"]))
+	if sqlErr != nil {
+		fmt.Printf("DB initialization failed - %s", sqlErr)
+		return
 	}
 	defer db.Close()
 
