@@ -113,7 +113,6 @@ func main() {
 		log.Fatal("DB initialization - ", err)
 	}
 	defer db.Close()
-	
 
 	//******************************************
 	// CORS Middleware to open API-React traffic.
