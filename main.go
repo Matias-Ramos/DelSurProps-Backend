@@ -63,18 +63,18 @@ func fillBuildingDetails(category string, rows *sql.Rows) (interface{}, error) {
 		return nil, fmt.Errorf("unsupported category: %s", category)
 	}
 }
-func generateSQLquery(category string, urlParams url.Values) (string, []interface{}) {
+func generateSQLquery(category string, urlQyParams url.Values) (string, []interface{}) {
 	// Building the SQL query
 	// (this way to query prevents SQL injection vulnerabilities)
-	query := fmt.Sprintf(`SELECT * FROM public."%s" ORDER BY id ASC `, category)
+	query := fmt.Sprintf(`SELECT * FROM public."%s"`, category)
 	args := []interface{}{}
 	conditions := []string{}
 
-	for fieldKey, fieldValue := range urlParams {
+	for fieldKey, fieldValue := range urlQyParams {
 		switch fieldKey {
 		case "location":
 			conditions = append(conditions, "location ILIKE $"+strconv.Itoa(len(args)+1))
-			args = append(args, "%"+fieldValue[0]+"%")
+			args = append(args, "'%"+fieldValue[0]+"%'")
 
 		case "price_init":
 			conditions = append(conditions, "price >= $"+strconv.Itoa(len(args)+1))
@@ -149,11 +149,10 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	//***************************************
 	// DB data gathering through SQL querying.
-	category := r.URL.Path
-	urlParams := r.URL.Query()
-	query, args := generateSQLquery(category, urlParams)
-	// -$x from "query"- is replaced by -%y% from "args"-
-	rows, err := db.Query(query, args...)
+	category := r.URL.Path[1:]
+	urlQyParams := r.URL.Query()
+	query, args := generateSQLquery(category, urlQyParams)
+	rows, err := db.Query(query, args...) // ($x from "query") are replaced by ('value' from "args")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
