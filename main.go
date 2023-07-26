@@ -15,7 +15,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func fillBuildingDetails(category string, rows *sql.Rows, queryValues url.Values) (interface{}, error) {
+func fillBuildingDetails(category string, rows *sql.Rows) (interface{}, error) {
 	switch category {
 	case "Alquileres":
 		buildingObj := &RentBuilding{Building: &Building{}}
@@ -63,14 +63,14 @@ func fillBuildingDetails(category string, rows *sql.Rows, queryValues url.Values
 		return nil, fmt.Errorf("unsupported category: %s", category)
 	}
 }
-func generateQuery(category string, queryValues url.Values) (string, []interface{}){
+func generateSQLquery(category string, urlParams url.Values) (string, []interface{}) {
 	// Building the SQL query
 	// (this way to query prevents SQL injection vulnerabilities)
 	query := fmt.Sprintf(`SELECT * FROM public."%s" ORDER BY id ASC `, category)
 	args := []interface{}{}
 	conditions := []string{}
 
-	for fieldKey, fieldValue := range queryValues {
+	for fieldKey, fieldValue := range urlParams {
 		switch fieldKey {
 		case "location":
 			conditions = append(conditions, "location ILIKE $"+strconv.Itoa(len(args)+1))
@@ -146,11 +146,13 @@ func generateQuery(category string, queryValues url.Values) (string, []interface
 	return query, args
 }
 func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	
+
 	//***************************************
 	// DB data gathering through SQL querying.
-	// -$x from "query"- is replaced by -%y% from "args"-
 	category := r.URL.Path
+	urlParams := r.URL.Query()
+	query, args := generateSQLquery(category, urlParams)
+	// -$x from "query"- is replaced by -%y% from "args"-
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -160,10 +162,9 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	//********************************
 	// Slice of structs initialization.
-	queryValues := r.URL.Query()
 	var buildings []interface{}
 	for rows.Next() {
-		newBuilding, err := fillBuildingDetails(category, rows, queryValues)
+		newBuilding, err := fillBuildingDetails(category, rows)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
