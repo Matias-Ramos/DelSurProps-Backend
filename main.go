@@ -145,11 +145,12 @@ func generateQuery(category string, queryValues url.Values) (string, []interface
 	}
 	return query, args
 }
-func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB, category string) {
-
+func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	
 	//***************************************
 	// DB data gathering through SQL querying.
 	// -$x from "query"- is replaced by -%y% from "args"-
+	category := r.URL.Path
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -216,13 +217,13 @@ func main() {
 	//******************************************
 	// Handlers.
 	sv.Get("/Emprendimientos", func(w http.ResponseWriter, r *http.Request) {
-		getDBdata(w, r, db, "Emprendimientos")
+		getDBdata(w, r, db)
 	})
 	sv.Get("/Ventas", func(w http.ResponseWriter, r *http.Request) {
-		getDBdata(w, r, db, "Ventas")
+		getDBdata(w, r, db)
 	})
 	sv.Get("/Alquileres", func(w http.ResponseWriter, r *http.Request) {
-		getDBdata(w, r, db, "Alquileres")
+		getDBdata(w, r, db)
 	})
 
 	//******************************************
