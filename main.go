@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -12,62 +15,142 @@ import (
 	"github.com/lib/pq"
 )
 
-func fillBuildingDetails(category string, rows *sql.Rows) (interface{}, error) {
-
+func fillBuildingDetails(category string, rows *sql.Rows, queryValues url.Values) (interface{}, error) {
 	switch category {
 	case "Alquileres":
 		buildingObj := &RentBuilding{Building: &Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
-			&buildingObj.Ubicacion,
-			&buildingObj.Precio,
-			&buildingObj.Ambientes,
-			&buildingObj.Dormitorios,
-			&buildingObj.Banios,
+			&buildingObj.Location,
+			&buildingObj.Price,
+			&buildingObj.Env,
+			&buildingObj.Bedrooms,
+			&buildingObj.Bathrooms,
 			&buildingObj.Garages,
-			pq.Array(&buildingObj.Imagenes))
+			pq.Array(&buildingObj.Images))
 		return buildingObj, err
 	case "Ventas":
 		buildingObj := &SalesBuilding{Building: &Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
-			&buildingObj.Ubicacion,
-			&buildingObj.Precio,
-			&buildingObj.Ambientes,
-			&buildingObj.Dormitorios,
-			&buildingObj.Banios,
+			&buildingObj.Location,
+			&buildingObj.Price,
+			&buildingObj.Env,
+			&buildingObj.Bedrooms,
+			&buildingObj.Bathrooms,
 			&buildingObj.Garages,
-			&buildingObj.Superficie_cubierta,
-			&buildingObj.Superficie_total,
-			pq.Array(&buildingObj.Imagenes))
+			&buildingObj.Covered_surface,
+			&buildingObj.Total_surface,
+			pq.Array(&buildingObj.Images))
 		return buildingObj, err
 	case "Emprendimientos":
 		buildingObj := &VentureBuilding{Building: &Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
-			&buildingObj.Ubicacion,
-			&buildingObj.Precio,
-			&buildingObj.Ambientes,
-			&buildingObj.Dormitorios,
-			&buildingObj.Banios,
+			&buildingObj.Location,
+			&buildingObj.Price,
+			&buildingObj.Env,
+			&buildingObj.Bedrooms,
+			&buildingObj.Bathrooms,
 			&buildingObj.Garages,
-			&buildingObj.Superficie_cubierta,
-			&buildingObj.Superficie_total,
-			&buildingObj.En_pozo,
-			&buildingObj.En_construccion,
-			pq.Array(&buildingObj.Imagenes))
+			&buildingObj.Covered_surface,
+			&buildingObj.Total_surface,
+			&buildingObj.Pozo,
+			&buildingObj.In_progress,
+			pq.Array(&buildingObj.Images))
 		return buildingObj, err
 	default:
 		return nil, fmt.Errorf("unsupported category: %s", category)
 	}
 }
+func generateQuery(category string, queryValues url.Values) (string, []interface{}){
+	// Building the SQL query
+	// (this way to query prevents SQL injection vulnerabilities)
+	query := fmt.Sprintf(`SELECT * FROM public."%s" ORDER BY id ASC `, category)
+	args := []interface{}{}
+	conditions := []string{}
 
+	for fieldKey, fieldValue := range queryValues {
+		switch fieldKey {
+		case "location":
+			conditions = append(conditions, "location ILIKE $"+strconv.Itoa(len(args)+1))
+			args = append(args, "%"+fieldValue[0]+"%")
+
+		case "price_init":
+			conditions = append(conditions, "price >= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+		case "price_limit":
+			conditions = append(conditions, "price <= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+
+		case "env_init":
+			conditions = append(conditions, "env >= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+		case "env_limit":
+			conditions = append(conditions, "env <= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+
+		case "bedroom_init":
+			conditions = append(conditions, "bedrooms >= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+		case "bedroom_limit":
+			conditions = append(conditions, "bedrooms <= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+
+		case "bathroom_init":
+			conditions = append(conditions, "bathrooms >= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+		case "bathroom_limit":
+			conditions = append(conditions, "bathrooms <= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+
+		case "garage_init":
+			conditions = append(conditions, "garages >= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+		case "garage_limit":
+			conditions = append(conditions, "garages <= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+
+		case "total_surface_init":
+			conditions = append(conditions, "total_surface >= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+		case "total_surface_limit":
+			conditions = append(conditions, "total_surface <= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+
+		case "covered_surface_init":
+			conditions = append(conditions, "covered_surface >= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+		case "covered_surface_limit":
+			conditions = append(conditions, "covered_surface <= $"+strconv.Itoa(len(args)+1))
+			args = append(args, fieldValue[0])
+
+		case "building_status":
+			switch fieldValue[0] {
+			case "in_progress":
+				conditions = append(conditions, "in_progress = $"+strconv.Itoa(len(args)+1))
+				args = append(args, true)
+			case "pozo":
+				conditions = append(conditions, "pozo = $"+strconv.Itoa(len(args)+1))
+				args = append(args, true)
+			case "in_progress-or-pozo":
+				conditions = append(conditions, "in_progress = $"+strconv.Itoa(len(args)+1)+" OR pozo = $"+strconv.Itoa(len(args)+2))
+				args = append(args, true, true)
+			}
+		}
+	}
+	// Add the WHERE clause if there are conditions
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+	return query, args
+}
 func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB, category string) {
 
 	//***************************************
 	// DB data gathering through SQL querying.
-	query := fmt.Sprintf(`SELECT * FROM public."%s" ORDER BY id ASC`, category)
-	rows, err := db.Query(query)
+	// -$x from "query"- is replaced by -%y% from "args"-
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -76,9 +159,10 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB, category stri
 
 	//********************************
 	// Slice of structs initialization.
+	queryValues := r.URL.Query()
 	var buildings []interface{}
 	for rows.Next() {
-		newBuilding, err := fillBuildingDetails(category, rows)
+		newBuilding, err := fillBuildingDetails(category, rows, queryValues)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

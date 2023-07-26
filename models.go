@@ -1,27 +1,27 @@
 package main
 
 type Building struct {
-	Id          int      `json:"id"`
-	Ubicacion   string   `json:"ubicacion"`
-	Precio      int      `json:"precio"`
-	Ambientes   uint8    `json:"ambientes"`
-	Dormitorios uint8    `json:"dormitorios"`
-	Banios      uint8    `json:"banios"`
-	Garages     uint8    `json:"garages"`
-	Imagenes    []string `json:"imagenes"`
+	Id        int      `json:"id"`
+	Location  string   `json:"location"`
+	Price     int      `json:"price"`
+	Env      uint8    `json:"env"`
+	Bedrooms  uint8    `json:"bedrooms"`
+	Bathrooms uint8    `json:"bathrooms"`
+	Garages   uint8    `json:"garages"`
+	Images    []string `json:"images"`
 }
 type RentBuilding struct {
 	*Building
 }
 type SalesBuilding struct {
 	*Building
-	Superficie_cubierta int `json:"superficie_cubierta"`
-	Superficie_total    int `json:"superficie_total"`
+	Covered_surface int `json:"covered_surface"`
+	Total_surface   int `json:"total_surface"`
 }
 type VentureBuilding struct {
 	*Building
-	Superficie_cubierta int  `json:"superficie_cubierta"`
-	Superficie_total    int  `json:"superficie_total"`
-	En_pozo             bool `json:"en_pozo"`
-	En_construccion     bool `json:"en_construccion"`
+	Covered_surface int  `json:"covered_surface"`
+	Total_surface   int  `json:"total_surface"`
+	Pozo            bool `json:"pozo"`
+	In_progress     bool `json:"in_progress"`
 }
