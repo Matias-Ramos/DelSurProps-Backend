@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -15,7 +14,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func fillBuildingDetails(category string, rows *sql.Rows) (interface{}, error) {
+func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 	switch category {
 	case "Alquileres":
 		buildingObj := &RentBuilding{Building: &Building{}}
@@ -63,69 +62,37 @@ func fillBuildingDetails(category string, rows *sql.Rows) (interface{}, error) {
 		return nil, fmt.Errorf("unsupported category: %s", category)
 	}
 }
-func generateSQLquery(category string, urlQyParams url.Values) (string, []interface{}) {
-	// Building the SQL query
-	// (this way to query prevents SQL injection vulnerabilities)
+func generateSQLquery(category string, urlQyParams map[string][]string) (string, []interface{}) {
 	query := fmt.Sprintf(`SELECT * FROM public."%s"`, category)
+	// (this way to query, prevents SQL injection attacks)
 	args := []interface{}{}
 	conditions := []string{}
+	columnMapping := map[string]string{
+		"price_init":            "price >=",
+		"price_limit":           "price <=",
+		"env_init":              "env >=",
+		"env_limit":             "env <=",
+		"bedroom_init":          "bedrooms >=",
+		"bedroom_limit":         "bedrooms <=",
+		"bathroom_init":         "bathrooms >=",
+		"bathroom_limit":        "bathrooms <=",
+		"garage_init":           "garages >=",
+		"garage_limit":          "garages <=",
+		"total_surface_init":    "total_surface >=",
+		"total_surface_limit":   "total_surface <=",
+		"covered_surface_init":  "covered_surface >=",
+		"covered_surface_limit": "covered_surface <=",
+	}
 
 	for fieldKey, fieldValue := range urlQyParams {
-		switch fieldKey {
-		case "location":
-			conditions = append(conditions, "location ILIKE $"+strconv.Itoa(len(args)+1))
-			args = append(args, "'%"+fieldValue[0]+"%'")
-
-		case "price_init":
-			conditions = append(conditions, "price >= $"+strconv.Itoa(len(args)+1))
+		if column, ok := columnMapping[fieldKey]; ok {
+			// The field key exists in the mapping, so add the condition
+			conditions = append(conditions, fmt.Sprintf("%s $%d", column, len(args)+1))
 			args = append(args, fieldValue[0])
-		case "price_limit":
-			conditions = append(conditions, "price <= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-
-		case "env_init":
-			conditions = append(conditions, "env >= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-		case "env_limit":
-			conditions = append(conditions, "env <= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-
-		case "bedroom_init":
-			conditions = append(conditions, "bedrooms >= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-		case "bedroom_limit":
-			conditions = append(conditions, "bedrooms <= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-
-		case "bathroom_init":
-			conditions = append(conditions, "bathrooms >= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-		case "bathroom_limit":
-			conditions = append(conditions, "bathrooms <= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-
-		case "garage_init":
-			conditions = append(conditions, "garages >= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-		case "garage_limit":
-			conditions = append(conditions, "garages <= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-
-		case "total_surface_init":
-			conditions = append(conditions, "total_surface >= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-		case "total_surface_limit":
-			conditions = append(conditions, "total_surface <= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-
-		case "covered_surface_init":
-			conditions = append(conditions, "covered_surface >= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-		case "covered_surface_limit":
-			conditions = append(conditions, "covered_surface <= $"+strconv.Itoa(len(args)+1))
-			args = append(args, fieldValue[0])
-
-		case "building_status":
+		} else if fieldKey == "location" {
+			conditions = append(conditions, fmt.Sprintf("location ILIKE $%d", len(args)+1))
+			args = append(args, "%"+fieldValue[0]+"%")
+		} else if fieldKey == "building_status" {
 			switch fieldValue[0] {
 			case "in_progress":
 				conditions = append(conditions, "in_progress = $"+strconv.Itoa(len(args)+1))
@@ -163,7 +130,7 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// Slice of structs initialization.
 	var buildings []interface{}
 	for rows.Next() {
-		newBuilding, err := fillBuildingDetails(category, rows)
+		newBuilding, err := initBuildingType(category, rows)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -17,7 +17,8 @@ tbd
 ### Estructura del programa
 - func main()
   - getDBdata()
-    - fillBuildingDetails()
+    - generateSQLquery()
+    - initBuildingType()
 
 
 ### Lenguaje
