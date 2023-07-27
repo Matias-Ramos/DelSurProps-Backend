@@ -1,14 +1,17 @@
 package main
 
 type Building struct {
-	Id        int      `json:"id"`
-	Location  string   `json:"location"`
-	Price     int      `json:"price"`
-	Env      uint8    `json:"env"`
-	Bedrooms  uint8    `json:"bedrooms"`
-	Bathrooms uint8    `json:"bathrooms"`
-	Garages   uint8    `json:"garages"`
-	Images    []string `json:"images"`
+	Id            int      `json:"id"`
+	Location      string   `json:"location"`
+	Price         int      `json:"price"`
+	Env           uint8    `json:"env"`
+	Bedrooms      uint8    `json:"bedrooms"`
+	Bathrooms     uint8    `json:"bathrooms"`
+	Garages       uint8    `json:"garages"`
+	LinkML        string   `json:"linkML"`
+	LinkZonaprop  string   `json:"linkZonaprop"`
+	LinkArgenprop string   `json:"linkArgenprop"`
+	Images        []string `json:"images"`
 }
 type RentBuilding struct {
 	*Building

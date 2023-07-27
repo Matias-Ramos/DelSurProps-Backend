@@ -16,7 +16,7 @@ import (
 
 func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 	switch category {
-	case "Alquileres":
+	case "alquiler-inmuebles":
 		buildingObj := &RentBuilding{Building: &Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
@@ -26,9 +26,12 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Bedrooms,
 			&buildingObj.Bathrooms,
 			&buildingObj.Garages,
-			pq.Array(&buildingObj.Images))
+			pq.Array(&buildingObj.Images),
+			&buildingObj.LinkML,
+			&buildingObj.LinkZonaprop,
+			&buildingObj.LinkArgenprop)
 		return buildingObj, err
-	case "Ventas":
+	case "venta-inmuebles":
 		buildingObj := &SalesBuilding{Building: &Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
@@ -40,9 +43,12 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Garages,
 			&buildingObj.Covered_surface,
 			&buildingObj.Total_surface,
-			pq.Array(&buildingObj.Images))
+			pq.Array(&buildingObj.Images),
+			&buildingObj.LinkML,
+			&buildingObj.LinkZonaprop,
+			&buildingObj.LinkArgenprop)
 		return buildingObj, err
-	case "Emprendimientos":
+	case "emprendimientos":
 		buildingObj := &VentureBuilding{Building: &Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
@@ -56,7 +62,10 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Total_surface,
 			&buildingObj.Pozo,
 			&buildingObj.In_progress,
-			pq.Array(&buildingObj.Images))
+			pq.Array(&buildingObj.Images),
+			&buildingObj.LinkML,
+			&buildingObj.LinkZonaprop,
+			&buildingObj.LinkArgenprop)
 		return buildingObj, err
 	default:
 		return nil, fmt.Errorf("unsupported category: %s", category)
@@ -183,15 +192,10 @@ func main() {
 
 	//******************************************
 	// Handlers.
-	sv.Get("/Emprendimientos", func(w http.ResponseWriter, r *http.Request) {
+	categoryHandler := func(w http.ResponseWriter, r *http.Request) {
 		getDBdata(w, r, db)
-	})
-	sv.Get("/Ventas", func(w http.ResponseWriter, r *http.Request) {
-		getDBdata(w, r, db)
-	})
-	sv.Get("/Alquileres", func(w http.ResponseWriter, r *http.Request) {
-		getDBdata(w, r, db)
-	})
+	}
+	sv.Get("/{category}", categoryHandler)
 
 	//******************************************
 	// Turning on the server.

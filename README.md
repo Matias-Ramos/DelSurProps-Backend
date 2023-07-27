@@ -29,5 +29,9 @@ Golang
 - http://localhost:8080/Alquileres
 - http://localhost:8080/Emprendimientos
 
+### Queries
+...
+
 ### Ejecución del proyecto
 Ejecutar "npm run main.go models.go" en la terminal del IDE. Acto siguiente, generar una http request con cURL, Postman, Insomnia (u otro) el tipo "get" a los endpoints detallados en el punto anterior.
+!!!!!!!!!!!!!!!!! -aclarar configuracion del archivo .env  !!!!!!!!!!!!!!!!!
