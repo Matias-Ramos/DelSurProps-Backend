@@ -14,6 +14,11 @@ import (
 	"github.com/lib/pq"
 )
 
+/*
+	InitBuilingType transmutes a *sql.Rows into a Go interface{}.
+
+Such result will represent the building object.
+*/
 func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 	switch category {
 	case "alquiler-inmuebles":
@@ -71,12 +76,18 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 		return nil, fmt.Errorf("unsupported category: %s", category)
 	}
 }
+
+/*
+	GenerateSQLquery returns "query" and "args"(arguments),
+
+being the [$x values of "query"] subsequently replaced by the [string values of "args"].
+*/
 func generateSQLquery(category string, urlQyParams map[string][]string) (string, []interface{}) {
 	query := fmt.Sprintf(`SELECT * FROM public."%s"`, category)
-	// (this way to query, prevents SQL injection attacks)
 	args := []interface{}{}
 	conditions := []string{}
-	columnMapping := map[string]string{
+	var queried []string
+	expressionMapping := map[string]string{
 		"price_init":            "price >=",
 		"price_limit":           "price <=",
 		"env_init":              "env >=",
@@ -94,10 +105,33 @@ func generateSQLquery(category string, urlQyParams map[string][]string) (string,
 	}
 
 	for fieldKey, fieldValue := range urlQyParams {
-		if column, ok := columnMapping[fieldKey]; ok {
-			// The field key exists in the mapping, so add the condition
-			conditions = append(conditions, fmt.Sprintf("%s $%d", column, len(args)+1))
+
+		// ************************************************************************
+		// Mgmt. of attributes within expressionMapping (share same query syntax)
+		if expression, ok := expressionMapping[fieldKey]; ok {
+			conditions = append(
+				conditions, fmt.Sprintf("(%s $%d %s)",
+					expression,
+					len(args)+1,
+					func() string {
+						wasQueried := false
+						words := strings.Fields(expression)
+						for _, value := range queried {
+							if words[0] == value {
+								wasQueried = true
+							}
+						}
+						if wasQueried {
+							return ""
+						} else {
+							queried = append(queried, words[0])
+							return fmt.Sprintf("OR %s IS NULL", words[0])
+						}
+					}()))
 			args = append(args, fieldValue[0])
+
+			// ************************************************************************
+			// Mgmt. of the rest of the attributes (distinct query syntax)
 		} else if fieldKey == "location" {
 			conditions = append(conditions, fmt.Sprintf("location ILIKE $%d", len(args)+1))
 			args = append(args, "%"+fieldValue[0]+"%")
@@ -128,7 +162,11 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	category := r.URL.Path[1:]
 	urlQyParams := r.URL.Query()
 	query, args := generateSQLquery(category, urlQyParams)
-	rows, err := db.Query(query, args...) // ($x from "query") are replaced by ('value' from "args")
+	rows, err := db.Query(query, args...)
+
+	fmt.Println(query)
+	fmt.Println(args)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -18,8 +18,8 @@ tbd
 - func main()
   - getDBdata()
     - generateSQLquery()
-    - initBuildingType()
-
+      - queryNullAttr()
+    - initBuildingType() 
 
 ### Lenguaje
 Golang
@@ -33,5 +33,5 @@ Golang
 ...
 
 ### Ejecución del proyecto
-Ejecutar "npm run main.go models.go" en la terminal del IDE. Acto siguiente, generar una http request con cURL, Postman, Insomnia (u otro) el tipo "get" a los endpoints detallados en el punto anterior.
+Ejecutar "npm run main.go models.go" en la terminal del IDE. Acto siguiente, generar una http request al host "http://127.0.0.1:8080" con cURL, Postman, Insomnia (u otro) del tipo "get" a los endpoints detallados en el punto anterior.
 !!!!!!!!!!!!!!!!! -aclarar configuracion del archivo .env  !!!!!!!!!!!!!!!!!

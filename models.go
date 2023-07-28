@@ -1,30 +1,32 @@
 package main
 
+import "database/sql"
+
 type Building struct {
-	Id            int      `json:"id"`
-	Location      string   `json:"location"`
-	Price         int      `json:"price"`
-	Env           uint8    `json:"env"`
-	Bedrooms      uint8    `json:"bedrooms"`
-	Bathrooms     uint8    `json:"bathrooms"`
-	Garages       uint8    `json:"garages"`
-	LinkML        string   `json:"linkML"`
-	LinkZonaprop  string   `json:"linkZonaprop"`
-	LinkArgenprop string   `json:"linkArgenprop"`
-	Images        []string `json:"images"`
+	Id            int            `json:"id"`
+	Location      string         `json:"location"`
+	Price         int            `json:"price"`
+	Env           sql.NullInt16  `json:"env"`
+	Bedrooms      sql.NullInt16  `json:"bedrooms"`
+	Bathrooms     sql.NullInt16  `json:"bathrooms"`
+	Garages       sql.NullInt16  `json:"garages"`
+	LinkML        sql.NullString `json:"linkML"`
+	LinkZonaprop  sql.NullString `json:"linkZonaprop"`
+	LinkArgenprop sql.NullString `json:"linkArgenprop"`
+	Images        []string       `json:"images"`
 }
 type RentBuilding struct {
 	*Building
 }
 type SalesBuilding struct {
 	*Building
-	Covered_surface int `json:"covered_surface"`
-	Total_surface   int `json:"total_surface"`
+	Covered_surface sql.NullInt16 `json:"covered_surface"`
+	Total_surface   sql.NullInt16 `json:"total_surface"`
 }
 type VentureBuilding struct {
 	*Building
-	Covered_surface int  `json:"covered_surface"`
-	Total_surface   int  `json:"total_surface"`
-	Pozo            bool `json:"pozo"`
-	In_progress     bool `json:"in_progress"`
+	Covered_surface sql.NullInt16 `json:"covered_surface"`
+	Total_surface   sql.NullInt16 `json:"total_surface"`
+	Pozo            bool          `json:"pozo"`
+	In_progress     bool          `json:"in_progress"`
 }
