@@ -15,8 +15,7 @@ import (
 )
 
 /*
-	InitBuilingType transmutes a *sql.Rows into a Go interface{}.
-
+InitBuilingType transmutes a *sql.Rows into a Go interface{}.
 Such result will represent the building object.
 */
 func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
@@ -78,9 +77,8 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 }
 
 /*
-	GenerateSQLquery returns "query" and "args"(arguments),
-
-being the [$x values of "query"] subsequently replaced by the [string values of "args"].
+GenerateSQLquery returns "query" and "args"(arguments),
+being the $x's inside "query" subsequently replaced by the "args" string values .
 */
 func generateSQLquery(category string, urlQyParams map[string][]string) (string, []interface{}) {
 	query := fmt.Sprintf(`SELECT * FROM public."%s"`, category)
@@ -131,7 +129,7 @@ func generateSQLquery(category string, urlQyParams map[string][]string) (string,
 			args = append(args, fieldValue[0])
 
 			// ************************************************************************
-			// Mgmt. of the rest of the attributes (distinct query syntax)
+			// Mgmt. of the rest of the attributes (distinctive query syntax)
 		} else if fieldKey == "location" {
 			conditions = append(conditions, fmt.Sprintf("location ILIKE $%d", len(args)+1))
 			args = append(args, "%"+fieldValue[0]+"%")
@@ -163,10 +161,6 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	urlQyParams := r.URL.Query()
 	query, args := generateSQLquery(category, urlQyParams)
 	rows, err := db.Query(query, args...)
-
-	fmt.Println(query)
-	fmt.Println(args)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

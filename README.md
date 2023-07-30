@@ -4,7 +4,7 @@ DelSurProps - backend
 ## Sobre el proyecto
 
 ### Motivo
-La complejidad de los datos requeridos crearon la necesidad de una base de datos SQL. Por decantación, opté implementar una API que comunique el front end hecho en React con una base de datos hecha en PostgreSQL.
+La estructura de los datos requeridos por el proyecto generaron la necesidad de una base de datos SQL. Por lo tanto, opté implementar una API que comunique el front end hecho en React con una base de datos hecha en PostgreSQL.
 
 ### Link
 tbd
@@ -18,16 +18,15 @@ tbd
 - func main()
   - getDBdata()
     - generateSQLquery()
-      - queryNullAttr()
     - initBuildingType() 
 
 ### Lenguaje
 Golang
 
 ### Endpoints
-- http://localhost:8080/Ventas
-- http://localhost:8080/Alquileres
-- http://localhost:8080/Emprendimientos
+- http://localhost:8080/venta-inmuebles
+- http://localhost:8080/alquiler-inmuebles
+- http://localhost:8080/emprendimientos
 
 ### Queries
 ...
