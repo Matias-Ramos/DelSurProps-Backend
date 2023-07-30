@@ -29,8 +29,19 @@ Golang
 - http://localhost:8080/emprendimientos
 
 ### Queries
-...
+- ?location=string
+- ?price_init=integer / ?price_limit=integer
+- ?env_init=integer / ?env_limit=integer
+- ?bedroom_init=integer / ?bedroom_limit=integer
+- ?bathroom_init=integer / ?bathroom_limit=integer
+- ?garage_init=integer / ?garage_limit=integer
+- ?total_surface_init=integer / ?total_surface_limit=integer
+- ?covered_surface_init=integer / ?covered_surface_limit=integer
+- ?building_status= in_progress-or-pozo/pozo/in_progress
 
 ### Ejecución del proyecto
+
 Ejecutar "npm run main.go models.go" en la terminal del IDE. Acto siguiente, generar una http request al host "http://127.0.0.1:8080" con cURL, Postman, Insomnia (u otro) del tipo "get" a los endpoints detallados en el punto anterior.
+
+
 !!!!!!!!!!!!!!!!! -aclarar configuracion del archivo .env  !!!!!!!!!!!!!!!!!
