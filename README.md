@@ -40,8 +40,8 @@ Golang
 - ?building_status= in_progress-or-pozo/pozo/in_progress
 
 ### Ejecución del proyecto
-
-Ejecutar "npm run main.go models.go" en la terminal del IDE. Acto siguiente, generar una http request al host "http://127.0.0.1:8080" con cURL, Postman, Insomnia (u otro) del tipo "get" a los endpoints detallados en el punto anterior.
-
-
-!!!!!!!!!!!!!!!!! -aclarar configuracion del archivo .env  !!!!!!!!!!!!!!!!!
+1. Crear archivo .env en el directorio root del proyecto con el siguiente contenido:
+USER="new_user"
+PWD="secure777"
+DB_NAME="Inmobiliaria_BD"
+2. Ejecutar "npm run main.go models.go" en la terminal del IDE. Acto siguiente, generar una http request al host "http://127.0.0.1:8080" con cURL, Postman, Insomnia (u otro) del tipo "get" a los endpoints detallados en el punto anterior.
