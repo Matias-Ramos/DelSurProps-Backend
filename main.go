@@ -154,7 +154,6 @@ func generateSQLquery(category string, urlQyParams map[string][]string) (string,
 	return query, args
 }
 func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	fmt.Println("entró getDBdata")
 	//***************************************
 	// DB data gathering through SQL querying.
 	category := chi.URLParam(r, "category")
@@ -166,7 +165,6 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 	defer rows.Close()
-	fmt.Printf("rows %v",rows)
 	//********************************
 	// Slice of structs initialization.
 	var buildings []interface{}
@@ -178,7 +176,6 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 		buildings = append(buildings, newBuilding)
 	}
-	fmt.Println(buildings)
 	//**********************************
 	// Convertion from Go slice to JSON.
 	jsonData, err := json.Marshal(buildings)
