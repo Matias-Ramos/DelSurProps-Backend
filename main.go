@@ -20,7 +20,7 @@ Such result will represent the building object.
 */
 func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 	switch category {
-	case "alquiler-inmuebles":
+	case "alquiler_inmuebles":
 		buildingObj := &RentBuilding{Building: &Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
@@ -35,7 +35,7 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.LinkZonaprop,
 			&buildingObj.LinkArgenprop)
 		return buildingObj, err
-	case "venta-inmuebles":
+	case "venta_inmuebles":
 		buildingObj := &SalesBuilding{Building: &Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
@@ -154,10 +154,10 @@ func generateSQLquery(category string, urlQyParams map[string][]string) (string,
 	return query, args
 }
 func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-
+	fmt.Println("entró getDBdata")
 	//***************************************
 	// DB data gathering through SQL querying.
-	category := r.URL.Path[1:]
+	category := chi.URLParam(r, "category")
 	urlQyParams := r.URL.Query()
 	query, args := generateSQLquery(category, urlQyParams)
 	rows, err := db.Query(query, args...)
@@ -166,7 +166,7 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 	defer rows.Close()
-
+	fmt.Printf("rows %v",rows)
 	//********************************
 	// Slice of structs initialization.
 	var buildings []interface{}
@@ -178,7 +178,7 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 		buildings = append(buildings, newBuilding)
 	}
-
+	fmt.Println(buildings)
 	//**********************************
 	// Convertion from Go slice to JSON.
 	jsonData, err := json.Marshal(buildings)
@@ -203,7 +203,7 @@ func main() {
 		fmt.Printf("Error loading .env into map[string]string - %s", mapError)
 		return
 	}
-	db, sqlErr := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", dbAuth["USER"], dbAuth["PWD"], dbAuth["DB_NAME"]))
+	db, sqlErr := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", dbAuth["PGS_USER"], dbAuth["PGS_PWD"], dbAuth["PGS_DB_NAME"]))
 	if sqlErr != nil {
 		fmt.Printf("DB initialization failed - %s", sqlErr)
 		return
@@ -227,7 +227,7 @@ func main() {
 	categoryHandler := func(w http.ResponseWriter, r *http.Request) {
 		getDBdata(w, r, db)
 	}
-	sv.Get("/{category}", categoryHandler)
+	sv.Get("/api/{category}", categoryHandler)
 
 	//******************************************
 	// Turning on the server.

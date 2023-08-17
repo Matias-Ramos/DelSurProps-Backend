@@ -7,10 +7,10 @@ DelSurProps - backend
 La estructura de los datos requeridos por el proyecto generaron la necesidad de una base de datos SQL. Por lo tanto, opté implementar una API que comunique el front end hecho en React con una base de datos hecha en PostgreSQL.
 
 ### Link
-tbd
+delsurprops.com.ar
 
 ### Hosting
-tbd
+donweb.com
 
 ## Código
 
@@ -24,9 +24,9 @@ tbd
 Golang
 
 ### Endpoints
-- http://localhost:8080/venta-inmuebles
-- http://localhost:8080/alquiler-inmuebles
-- http://localhost:8080/emprendimientos
+- http://localhost:8080/api/venta_inmuebles
+- http://localhost:8080/api/alquiler_inmuebles
+- http://localhost:8080/api/emprendimientos
 
 ### Queries
 - ?location=string
@@ -44,4 +44,4 @@ Golang
 USER="new_user"
 PWD="secure777"
 DB_NAME="Inmobiliaria_BD"
-2. Ejecutar "npm run main.go models.go" en la terminal del IDE. Acto siguiente, generar una http request al host "http://127.0.0.1:8080" con cURL, Postman, Insomnia (u otro) del tipo "get" a los endpoints detallados en el punto anterior.
+2. Ejecutar "go run main.go models.go" en la terminal del IDE. Acto siguiente, generar una http request al host "http://127.0.0.1:8080/api/{category}" con cURL, Postman, Insomnia (u otro) del tipo "get" a los endpoints detallados en el punto anterior.
