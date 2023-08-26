@@ -1,7 +1,69 @@
 package main
 
-import "database/sql"
+import (
+	"database/sql"
+	"encoding/json"
+	"strconv"
+)
 
+// **************************************
+// custom React null receiving data types.
+type NullInt16 struct {
+	sql.NullInt16
+}
+type NullString struct {
+	sql.NullString
+}
+
+// ******************************************************
+// UnmarshalJSON implements the json.Unmarshaler interface
+
+func (ni *NullInt16) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		ni.Valid = false
+		return nil
+	}
+
+	// byte string -> byte int
+	intValue, _ := strconv.Atoi(string(data))
+	updatedByteData := []byte(strconv.Itoa(intValue))
+
+	err := json.Unmarshal(updatedByteData, &ni.Int16)
+	if err == nil {
+		ni.Valid = true
+	}
+	return err
+}
+
+func (ns *NullString) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		ns.Valid = false
+		return nil
+	}
+	err := json.Unmarshal(data, &ns.String)
+	if err == nil {
+		ns.Valid = true
+	}
+	return err
+}
+
+// **********************
+// Building structures
+
+type TestBuilding struct {
+	Id            int        `json:"id"`
+	Location      string     `json:"location"`
+	Currency      string     `json:"currency"`
+	Price         NullInt16  `json:"price"`
+	Env           NullInt16  `json:"env"`
+	Bedrooms      NullInt16  `json:"bedrooms"`
+	Bathrooms     NullInt16  `json:"bathrooms"`
+	Garages       NullInt16  `json:"garages"`
+	LinkML        NullString `json:"link_ml"`
+	LinkZonaprop  NullString `json:"link_zonaprop"`
+	LinkArgenprop NullString `json:"link_argenprop"`
+	Images        []string   `json:"images"`
+}
 type Building struct {
 	Id            int            `json:"id"`
 	Location      string         `json:"location"`
@@ -17,6 +79,7 @@ type Building struct {
 }
 type RentBuilding struct {
 	*Building
+	Currency string `json:"currency"`
 }
 type SalesBuilding struct {
 	*Building

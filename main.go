@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -33,7 +34,8 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			pq.Array(&buildingObj.Images),
 			&buildingObj.LinkML,
 			&buildingObj.LinkZonaprop,
-			&buildingObj.LinkArgenprop)
+			&buildingObj.LinkArgenprop,
+			&buildingObj.Currency)
 		return buildingObj, err
 	case "venta_inmuebles":
 		buildingObj := &SalesBuilding{Building: &Building{}}
@@ -189,7 +191,37 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)
 }
+func postData(w http.ResponseWriter, r *http.Request) {
 
+	category := chi.URLParam(r, "category")
+
+	var buildingObj interface{}
+	switch category {
+	case "alquiler_inmueble":
+		buildingObj = &TestBuilding{}
+	case "venta_inmueble":
+		buildingObj = &SalesBuilding{Building: &Building{}}
+	case "emprendimiento":
+		buildingObj = &VentureBuilding{Building: &Building{}}
+	}
+
+	// (r.Body -> type io.ReadCloser)
+	bodyBytes, _ := io.ReadAll(r.Body)
+	bodyString := string(bodyBytes)
+	fmt.Println("bodyString")
+	fmt.Println(bodyString)
+
+	// str to struct
+	decoder := json.NewDecoder(strings.NewReader(bodyString))
+	err := decoder.Decode(&buildingObj)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+
+	w.Write([]byte("Okay"))
+}
 func main() {
 
 	//******************************************
@@ -211,7 +243,7 @@ func main() {
 	// CORS Middleware to open API-React traffic.
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"}, // Replace with your React app's URL
-		AllowedMethods:   []string{"GET"},
+		AllowedMethods:   []string{"GET", "POST"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
@@ -225,6 +257,7 @@ func main() {
 		getDBdata(w, r, db)
 	}
 	sv.Get("/api/{category}", categoryHandler)
+	sv.Post("/admin/post/{category}", postData)
 
 	//******************************************
 	// Turning on the server.
