@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"strconv"
 )
 
@@ -18,31 +20,34 @@ type NullString struct {
 // ******************************************************
 // UnmarshalJSON implements the json.Unmarshaler interface
 
-func (ni *NullInt16) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
-		ni.Valid = false
+func (niP *NullInt16) UnmarshalJSON(data []byte) error {
+	stringedValue := strings.Trim(string(data),`"`)
+	if len(stringedValue) == 0 {
+		niP.Valid = false
 		return nil
 	}
 
-	// byte string -> byte int
-	intValue, _ := strconv.Atoi(string(data))
-	updatedByteData := []byte(strconv.Itoa(intValue))
-
-	err := json.Unmarshal(updatedByteData, &ni.Int16)
-	if err == nil {
-		ni.Valid = true
+	// byte string -> string -> int 
+	intValue, errIntConv := strconv.Atoi(stringedValue)
+	if errIntConv!= nil{
+		return fmt.Errorf("UnmarshalJSON errIntConv at models.go failed: %v", errIntConv)
 	}
-	return err
+	niP.Int16 = int16(intValue)
+	niP.Valid = true
+
+	return nil
 }
 
-func (ns *NullString) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
-		ns.Valid = false
+func (nsP *NullString) UnmarshalJSON(data []byte) error {
+	stringedValue := strings.Trim(string(data),`"`)
+	if len(stringedValue) == 0 {
+		nsP.Valid = false
 		return nil
 	}
-	err := json.Unmarshal(data, &ns.String)
+	err := json.Unmarshal(data, &nsP.String)
 	if err == nil {
-		ns.Valid = true
+		nsP.Valid = true
+		return nil
 	}
 	return err
 }
@@ -53,7 +58,6 @@ func (ns *NullString) UnmarshalJSON(data []byte) error {
 type TestBuilding struct {
 	Id            int        `json:"id"`
 	Location      string     `json:"location"`
-	Currency      string     `json:"currency"`
 	Price         NullInt16  `json:"price"`
 	Env           NullInt16  `json:"env"`
 	Bedrooms      NullInt16  `json:"bedrooms"`
@@ -62,7 +66,8 @@ type TestBuilding struct {
 	LinkML        NullString `json:"link_ml"`
 	LinkZonaprop  NullString `json:"link_zonaprop"`
 	LinkArgenprop NullString `json:"link_argenprop"`
-	Images        []string   `json:"images"`
+	Images        []string   `json:"image_links"`
+	Currency      string     `json:"currency"`
 }
 type Building struct {
 	Id            int            `json:"id"`

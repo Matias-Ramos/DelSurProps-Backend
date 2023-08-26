@@ -191,6 +191,12 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)
 }
+
+func generateSQLPostQuery(){
+	//INSERT INTO public.alquiler_inmuebles(
+	// id, location, price, env, bedrooms, bathrooms, garages, images, "linkML", "linkZonaprop", "linkArgenprop", currency)
+	// VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+}
 func postData(w http.ResponseWriter, r *http.Request) {
 
 	category := chi.URLParam(r, "category")
@@ -218,8 +224,8 @@ func postData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error:", err)
 		return
 	}
-
-
+	fmt.Println("buildingObj")
+	fmt.Println(buildingObj)
 	w.Write([]byte("Okay"))
 }
 func main() {
