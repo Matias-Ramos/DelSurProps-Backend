@@ -1,27 +1,16 @@
-package main
-
+package crud
 import (
-	"database/sql"
-	"encoding/json"
 	"fmt"
-	"io"
-	"math/rand"
-	"net/http"
-	"reflect"
-	"strconv"
+	"database/sql"
 	"strings"
-	"time"
+	"strconv"
+	"net/http"
+	"encoding/json"
+	"main/models"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/cors"
-	"github.com/joho/godotenv"
 	"github.com/lib/pq"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
 /*
 	InitBuilingType mutates a *sql.Rows into a Go interface{}.
 	Such result will represent the building object.
@@ -29,7 +18,7 @@ func init() {
 func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 	switch category {
 	case "alquiler_inmuebles":
-		buildingObj := &RentBuilding{Building: &Building{}}
+		buildingObj := &models.RentBuilding{Building: &models.Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
 			&buildingObj.Location,
@@ -45,7 +34,7 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Currency)
 		return buildingObj, err
 	case "venta_inmuebles":
-		buildingObj := &SalesBuilding{Building: &Building{}}
+		buildingObj := &models.SalesBuilding{Building: &models.Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
 			&buildingObj.Location,
@@ -62,7 +51,7 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.LinkArgenprop)
 		return buildingObj, err
 	case "emprendimientos":
-		buildingObj := &VentureBuilding{Building: &Building{}}
+		buildingObj := &models.VentureBuilding{Building: &models.Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
 			&buildingObj.Location,
@@ -193,130 +182,4 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// Sending the data to the requester.
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)
-}
-
-func generateInsertQuery(data interface{}, tableName string) string {
-	var columns []string
-	var values []string
-
-	buildingType := reflect.TypeOf(data)
-	buildingValue := reflect.ValueOf(data).Elem()
-
-	for i := 0; i < buildingType.Elem().NumField(); i++ {
-		field := buildingType.Elem().Field(i)
-		value := buildingValue.Field(i).Interface()
-
-		columns = append(columns, field.Name)
-		if field.Type == reflect.TypeOf([]string{}) {
-			values = append(values, fmt.Sprintf("'{%s}'", strings.Join(value.([]string), ",")))
-		} else {
-			values = append(values, fmt.Sprintf("'%v'", value))
-		}
-	}
-
-	columnsStr := strings.Join(columns, ", ")
-	valuesStr := strings.Join(values, ", ")
-
-	query := fmt.Sprintf("INSERT INTO public.%s (%s) VALUES (%s);", tableName, columnsStr, valuesStr)
-	return query
-}
-
-/*
-	postData processes incoming form data:
-	- Determines the appropriate struct based on the category
-	- Adds an ID to the form data and populates the corresponding struct
-	- Calls the query generator with the resulting struct
-*/
-func postData(w http.ResponseWriter, r *http.Request) {
-	category := chi.URLParam(r, "category")
-
-	var buildingObj interface{}
-	switch category {
-	case "alquiler_inmueble":
-		buildingObj = &TestBuilding{}
-	case "venta_inmueble":
-		buildingObj = &SalesBuilding{Building: &Building{}}
-	case "emprendimiento":
-		buildingObj = &VentureBuilding{Building: &Building{}}
-	}
-
-	// io.ReadCloser to []byte
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Printf("error on io.ReadAll() - post method: %s", err)
-		return
-	}
-
-	// []byte to map
-	var m map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &m); err != nil {
-		fmt.Printf("error on json.Unmarshal() - post method: %s", err)
-		return
-	}
-
-	// Add an Id to the map
-	id := int64(time.Now().UnixNano()) + int64(rand.Intn(1000000))
-	m["Id"] = id
-
-	// Recreate the JSON
-	newData, err := json.Marshal(m)
-	if err != nil {
-		fmt.Printf("error on json.Marshal() - post method: %s", err)
-		return
-	}
-
-	fmt.Println("newData")
-	fmt.Println(string(newData))
-
-	// Populate the buildingObj
-	if err := json.Unmarshal(newData, buildingObj); err != nil {
-		fmt.Printf("error on json.Unmarshal() - post method: %s", err)
-		return
-	}
-
-	fmt.Println(generateInsertQuery(buildingObj, "alquiler_inmuebles"))
-	w.Write([]byte("Okay"))
-}
-
-func main() {
-
-	//******************************************
-	// SV, Credentials & DB Initialization.
-	sv := chi.NewRouter()
-	dbAuth, mapError := godotenv.Read(".env")
-	if mapError != nil {
-		fmt.Printf("Error loading .env into map[string]string - %s", mapError)
-		return
-	}
-	db, sqlErr := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", dbAuth["PGS_USER"], dbAuth["PGS_PWD"], dbAuth["PGS_DB_NAME"]))
-	if sqlErr != nil {
-		fmt.Printf("DB initialization failed - %s", sqlErr)
-		return
-	}
-	defer db.Close()
-
-	//******************************************
-	// CORS Middleware to open API-React traffic.
-	cors := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // Replace with your React app's URL
-		AllowedMethods:   []string{"GET", "POST"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300,
-	})
-	sv.Use(cors.Handler)
-
-	//******************************************
-	// Handlers.
-	categoryHandler := func(w http.ResponseWriter, r *http.Request) {
-		getDBdata(w, r, db)
-	}
-	sv.Get("/api/{category}", categoryHandler)
-	sv.Post("/admin/post/{category}", postData)
-
-	//******************************************
-	// Turning on the server.
-	fmt.Println("Server is running on port 8080")
-	http.ListenAndServe(":8080", sv)
 }

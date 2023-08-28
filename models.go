@@ -69,6 +69,24 @@ type TestBuilding struct {
 	Images        []string   `json:"image_links"`
 	Currency      string     `json:"currency"`
 }
+type TestRentBuilding struct {
+	*TestBuilding
+	Currency string `json:"currency"`
+}
+type TestSalesBuilding struct {
+	*TestBuilding
+	Covered_surface sql.NullInt16 `json:"covered_surface"`
+	Total_surface   sql.NullInt16 `json:"total_surface"`
+}
+type TestVentureBuilding struct {
+	*TestBuilding
+	Covered_surface sql.NullInt16 `json:"covered_surface"`
+	Total_surface   sql.NullInt16 `json:"total_surface"`
+	Pozo            bool          `json:"pozo"`
+	In_progress     bool          `json:"in_progress"`
+}
+
+
 type Building struct {
 	Id            int            `json:"id"`
 	Location      string         `json:"location"`
