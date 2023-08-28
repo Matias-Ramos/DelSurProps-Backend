@@ -1,19 +1,21 @@
 package crud
+
 import (
-	"fmt"
 	"database/sql"
-	"strings"
-	"strconv"
-	"net/http"
 	"encoding/json"
-	"main/models"
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"github.com/Matias-Ramos/Inmobiliaria-backend-go/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/lib/pq"
 )
+
 /*
-	InitBuilingType mutates a *sql.Rows into a Go interface{}.
-	Such result will represent the building object.
+InitBuilingType mutates a *sql.Rows into a Go interface{}.
+Such result will represent the building object.
 */
 func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 	switch category {
@@ -73,9 +75,10 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 		return nil, fmt.Errorf("unsupported category: %s", category)
 	}
 }
+
 /*
-	generateGetQuery returns "query" and "args".
-	The returned "query" contains placeholders like $1, $2, which will be replaced by the values in "args" respectively.
+generateGetQuery returns "query" and "args".
+The returned "query" contains placeholders like $1, $2, which will be replaced by the values in "args" respectively.
 */
 func generateGetQuery(category string, urlQyParams map[string][]string) (string, []interface{}) {
 	query := fmt.Sprintf(`SELECT * FROM public."%s"`, category)
@@ -145,7 +148,7 @@ func generateGetQuery(category string, urlQyParams map[string][]string) (string,
 	}
 	return query, args
 }
-func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {	
+func GetDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// DB data gathering through SQL querying.
 	category := chi.URLParam(r, "category")
@@ -157,7 +160,6 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 	defer rows.Close()
-	
 
 	// Slice of structs initialization.
 	var buildings []interface{}
@@ -169,7 +171,6 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 		buildings = append(buildings, newBuilding)
 	}
-	
 
 	// Convertion from Go slice to JSON.
 	jsonData, err := json.Marshal(buildings)
@@ -177,7 +178,6 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 
 	// Sending the data to the requester.
 	w.Header().Set("Content-Type", "application/json")

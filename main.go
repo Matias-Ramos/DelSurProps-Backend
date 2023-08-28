@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/Matias-Ramos/Inmobiliaria-backend-go/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -23,13 +24,13 @@ func init() {
 }
 
 /*
-	InitBuilingType mutates a *sql.Rows into a Go interface{}.
-	Such result will represent the building object.
+InitBuilingType mutates a *sql.Rows into a Go interface{}.
+Such result will represent the building object.
 */
 func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 	switch category {
 	case "alquiler_inmuebles":
-		buildingObj := &RentBuilding{Building: &Building{}}
+		buildingObj := &models.RentBuilding{Building: &models.Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
 			&buildingObj.Location,
@@ -45,7 +46,7 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Currency)
 		return buildingObj, err
 	case "venta_inmuebles":
-		buildingObj := &SalesBuilding{Building: &Building{}}
+		buildingObj := &models.SalesBuilding{Building: &models.Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
 			&buildingObj.Location,
@@ -62,7 +63,7 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.LinkArgenprop)
 		return buildingObj, err
 	case "emprendimientos":
-		buildingObj := &VentureBuilding{Building: &Building{}}
+		buildingObj := &models.VentureBuilding{Building: &models.Building{}}
 		err := rows.Scan(
 			&buildingObj.Id,
 			&buildingObj.Location,
@@ -84,9 +85,10 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 		return nil, fmt.Errorf("unsupported category: %s", category)
 	}
 }
+
 /*
-	generateGetQuery returns "query" and "args".
-	The returned "query" contains placeholders like $1, $2, which will be replaced by the values in "args" respectively.
+generateGetQuery returns "query" and "args".
+The returned "query" contains placeholders like $1, $2, which will be replaced by the values in "args" respectively.
 */
 func generateGetQuery(category string, urlQyParams map[string][]string) (string, []interface{}) {
 	query := fmt.Sprintf(`SELECT * FROM public."%s"`, category)
@@ -156,7 +158,7 @@ func generateGetQuery(category string, urlQyParams map[string][]string) (string,
 	}
 	return query, args
 }
-func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {	
+func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// DB data gathering through SQL querying.
 	category := chi.URLParam(r, "category")
@@ -168,7 +170,6 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 	defer rows.Close()
-	
 
 	// Slice of structs initialization.
 	var buildings []interface{}
@@ -180,7 +181,6 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 		buildings = append(buildings, newBuilding)
 	}
-	
 
 	// Convertion from Go slice to JSON.
 	jsonData, err := json.Marshal(buildings)
@@ -188,7 +188,6 @@ func getDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 
 	// Sending the data to the requester.
 	w.Header().Set("Content-Type", "application/json")
@@ -222,10 +221,10 @@ func generateInsertQuery(data interface{}, tableName string) string {
 }
 
 /*
-	postData processes incoming form data:
-	- Determines the appropriate struct based on the category
-	- Adds an ID to the form data and populates the corresponding struct
-	- Calls the query generator with the resulting struct
+postData processes incoming form data:
+- Determines the appropriate struct based on the category
+- Adds an ID to the form data and populates the corresponding struct
+- Calls the query generator with the resulting struct
 */
 func postData(w http.ResponseWriter, r *http.Request) {
 	category := chi.URLParam(r, "category")
@@ -233,11 +232,11 @@ func postData(w http.ResponseWriter, r *http.Request) {
 	var buildingObj interface{}
 	switch category {
 	case "alquiler_inmueble":
-		buildingObj = &TestBuilding{}
+		buildingObj = &models.TestBuilding{}
 	case "venta_inmueble":
-		buildingObj = &SalesBuilding{Building: &Building{}}
+		buildingObj = &models.SalesBuilding{Building: &models.Building{}}
 	case "emprendimiento":
-		buildingObj = &VentureBuilding{Building: &Building{}}
+		buildingObj = &models.VentureBuilding{Building: &models.Building{}}
 	}
 
 	// io.ReadCloser to []byte
