@@ -44,4 +44,4 @@ Golang
 USER="new_user"
 PWD="secure777"
 DB_NAME="Inmobiliaria_BD"
-2. Ejecutar "go run main.go models.go" en la terminal del IDE. Acto siguiente, generar una http request al host "http://127.0.0.1:8080/api/{category}" con cURL, Postman, Insomnia (u otro) del tipo "get" a los endpoints detallados en el punto anterior.
+2. Ejecutar "go run main.go" en la terminal del IDE. Acto siguiente, generar una http request al host "http://127.0.0.1:8080/api/{category}" con cURL, Postman, Insomnia (u otro) del tipo "get" a los endpoints detallados en el punto anterior.
