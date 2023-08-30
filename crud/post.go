@@ -7,14 +7,14 @@ import (
 	"math/rand"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Matias-Ramos/Inmobiliaria-backend-go/models"
-	
+
 	"github.com/go-chi/chi/v5"
 )
-
 
 /*
 postData processes incoming form data:
@@ -28,7 +28,7 @@ func PostData(w http.ResponseWriter, r *http.Request) {
 	var buildingObj interface{}
 	switch category {
 	case "alquiler_inmueble":
-		buildingObj = &models.TestBuilding{}
+		buildingObj = &models.RentBuilding{}
 	case "venta_inmueble":
 		buildingObj = &models.SalesBuilding{Building: &models.Building{}}
 	case "emprendimiento":
@@ -45,13 +45,17 @@ func PostData(w http.ResponseWriter, r *http.Request) {
 	// []byte to map
 	var m map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &m); err != nil {
-		fmt.Printf("error on json.Unmarshal() - post method: %s", err)
+		fmt.Printf("error on json.Unmarshal() - []byte to map - post method: %s", err)
 		return
 	}
 
 	// Add an Id to the map
 	id := int64(time.Now().UnixNano()) + int64(rand.Intn(1000000))
-	m["Id"] = id
+	m["id"] = id
+
+	priceInt, _ := strconv.Atoi(m["price"].(string))
+	m["price"] = priceInt
+
 
 	// Recreate the JSON
 	newData, err := json.Marshal(m)
@@ -60,42 +64,62 @@ func PostData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("newData")
-	fmt.Println(string(newData))
-
 	// Populate the buildingObj
 	if err := json.Unmarshal(newData, buildingObj); err != nil {
 		fmt.Printf("error on json.Unmarshal() - post method: %s", err)
 		return
 	}
 
-	fmt.Println(generateInsertQuery(buildingObj, "alquiler_inmuebles"))
+	fmt.Println(generateInsertQuery(buildingObj, category))
 	w.Write([]byte("Okay"))
 }
 
 
+/*
+ Note that the Building struct is embedded into RentBuilding, SalesBuilding and VentureBuilding.
+ "generateInsertQuery" iterates through fields at both top level (RB,SB,VB) and low level (Building) fields.
+*/
 func generateInsertQuery(data interface{}, tableName string) string {
-	var columns []string
+	var sqlColumns []string
 	var values []string
+	building := reflect.ValueOf(data).Elem()
 
-	buildingType := reflect.TypeOf(data)
-	buildingValue := reflect.ValueOf(data).Elem()
+	for i := 0; i < building.NumField(); i++ {
+		externalField := building.Type().Field(i)
+		externalValue := building.Field(i).Interface()
 
-	for i := 0; i < buildingType.Elem().NumField(); i++ {
-		field := buildingType.Elem().Field(i)
-		value := buildingValue.Field(i).Interface()
+		// If the field is a pointer to Building...
+		if externalField.Type.Kind() == reflect.Ptr && externalField.Type.Elem().Name() == "Building" {
+			embeddedValues := reflect.Indirect(reflect.ValueOf(externalValue))
+			// ...iterate over its internal struct
+			for j := 0; j < embeddedValues.NumField(); j++ {
+				internalField := embeddedValues.Type().Field(j)
+				internalValue := embeddedValues.Field(j).Interface()
+				sqlColumns = append(sqlColumns, internalField.Name)
 
-		columns = append(columns, field.Name)
-		if field.Type == reflect.TypeOf([]string{}) {
-			values = append(values, fmt.Sprintf("'{%s}'", strings.Join(value.([]string), ",")))
+				if isImgLinks := internalField.Type == reflect.TypeOf([]string{}); isImgLinks {
+					values = append(values, fmt.Sprintf("'{%s}'", strings.Join(internalValue.([]string), ",")))
+				} else {
+					values = append(values, fmt.Sprintf("'%v'", internalValue))
+				}
+			}
 		} else {
-			values = append(values, fmt.Sprintf("'%v'", value))
+			// top-level fields on RentBuilding / SalesBuilding / VentureBuilding
+			sqlColumns = append(sqlColumns, externalField.Name)
+			values = append(values, fmt.Sprintf("'%v'", externalValue))
 		}
 	}
 
-	columnsStr := strings.Join(columns, ", ")
-	valuesStr := strings.Join(values, ", ")
-
-	query := fmt.Sprintf("INSERT INTO public.%s (%s) VALUES (%s);", tableName, columnsStr, valuesStr)
+	sqlColumnsFormatted := strings.Join(convertToLowerCase(sqlColumns), ", ")
+	sqlValuesFormatted := strings.Join(values, ", ")
+	
+	query := fmt.Sprintf("INSERT INTO public.%ss (%s) VALUES (%s);", tableName, sqlColumnsFormatted, sqlValuesFormatted)
 	return query
+}
+func convertToLowerCase(sqlColumns []string) []string {
+	var lowercaseColumns []string
+	for _, col := range sqlColumns {
+		lowercaseColumns = append(lowercaseColumns, strings.ToLower(col))
+	}
+	return lowercaseColumns
 }

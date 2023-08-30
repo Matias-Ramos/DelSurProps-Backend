@@ -23,6 +23,7 @@ func GetDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Printf("err at db.Query - GetDBdata: %v", err)
 		return
 	}
 	defer rows.Close()
@@ -34,6 +35,7 @@ func GetDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		newBuilding, err := initBuildingType(category, rows)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Printf("err at rows.Next() -> initBuildingType - GetDBdata: %v", err)
 			return
 		}
 		buildings = append(buildings, newBuilding)
@@ -44,6 +46,7 @@ func GetDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	jsonData, err := json.Marshal(buildings)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Printf("err at json.Marshal() - GetDBdata: %v", err)
 		return
 	}
 
@@ -156,9 +159,9 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Bathrooms,
 			&buildingObj.Garages,
 			pq.Array(&buildingObj.Images),
-			&buildingObj.LinkML,
-			&buildingObj.LinkZonaprop,
-			&buildingObj.LinkArgenprop,
+			&buildingObj.Link_ml,
+			&buildingObj.Link_zonaprop,
+			&buildingObj.Link_argenprop,
 			&buildingObj.Currency)
 		return buildingObj, err
 	case "venta_inmuebles":
@@ -174,9 +177,9 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Covered_surface,
 			&buildingObj.Total_surface,
 			pq.Array(&buildingObj.Images),
-			&buildingObj.LinkML,
-			&buildingObj.LinkZonaprop,
-			&buildingObj.LinkArgenprop)
+			&buildingObj.Link_ml,
+			&buildingObj.Link_zonaprop,
+			&buildingObj.Link_argenprop)
 		return buildingObj, err
 	case "emprendimientos":
 		buildingObj := &models.VentureBuilding{Building: &models.Building{}}
@@ -193,9 +196,9 @@ func initBuildingType(category string, rows *sql.Rows) (interface{}, error) {
 			&buildingObj.Pozo,
 			&buildingObj.In_progress,
 			pq.Array(&buildingObj.Images),
-			&buildingObj.LinkML,
-			&buildingObj.LinkZonaprop,
-			&buildingObj.LinkArgenprop)
+			&buildingObj.Link_ml,
+			&buildingObj.Link_zonaprop,
+			&buildingObj.Link_argenprop)
 		return buildingObj, err
 	default:
 		return nil, fmt.Errorf("unsupported category: %s", category)

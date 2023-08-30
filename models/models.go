@@ -55,49 +55,18 @@ func (nsP *NullString) UnmarshalJSON(data []byte) error {
 // **********************
 // Building structures
 
-type TestBuilding struct {
-	Id            int        `json:"id"`
-	Location      string     `json:"location"`
-	Price         NullInt16  `json:"price"`
-	Env           NullInt16  `json:"env"`
-	Bedrooms      NullInt16  `json:"bedrooms"`
-	Bathrooms     NullInt16  `json:"bathrooms"`
-	Garages       NullInt16  `json:"garages"`
-	LinkML        NullString `json:"link_ml"`
-	LinkZonaprop  NullString `json:"link_zonaprop"`
-	LinkArgenprop NullString `json:"link_argenprop"`
-	Images        []string   `json:"image_links"`
-	Currency      string     `json:"currency"`
-}
-type TestRentBuilding struct {
-	*TestBuilding
-	Currency string `json:"currency"`
-}
-type TestSalesBuilding struct {
-	*TestBuilding
-	Covered_surface sql.NullInt16 `json:"covered_surface"`
-	Total_surface   sql.NullInt16 `json:"total_surface"`
-}
-type TestVentureBuilding struct {
-	*TestBuilding
-	Covered_surface sql.NullInt16 `json:"covered_surface"`
-	Total_surface   sql.NullInt16 `json:"total_surface"`
-	Pozo            bool          `json:"pozo"`
-	In_progress     bool          `json:"in_progress"`
-}
-
 type Building struct {
-	Id            int            `json:"id"`
-	Location      string         `json:"location"`
-	Price         int            `json:"price"`
-	Env           sql.NullInt16  `json:"env"`
-	Bedrooms      sql.NullInt16  `json:"bedrooms"`
-	Bathrooms     sql.NullInt16  `json:"bathrooms"`
-	Garages       sql.NullInt16  `json:"garages"`
-	LinkML        sql.NullString `json:"linkML"`
-	LinkZonaprop  sql.NullString `json:"linkZonaprop"`
-	LinkArgenprop sql.NullString `json:"linkArgenprop"`
-	Images        []string       `json:"images"`
+	Id             int        `json:"id"`
+	Location       string     `json:"location"`
+	Price          int        `json:"price"`
+	Env            NullInt16  `json:"env"`
+	Bedrooms       NullInt16  `json:"bedrooms"`
+	Bathrooms      NullInt16  `json:"bathrooms"`
+	Garages        NullInt16  `json:"garages"`
+	Link_ml        NullString `json:"link_ml"`
+	Link_zonaprop  NullString `json:"link_zonaprop"`
+	Link_argenprop NullString `json:"link_argenprop"`
+	Images         []string   `json:"image_links"`
 }
 type RentBuilding struct {
 	*Building
@@ -105,13 +74,13 @@ type RentBuilding struct {
 }
 type SalesBuilding struct {
 	*Building
-	Covered_surface sql.NullInt16 `json:"covered_surface"`
-	Total_surface   sql.NullInt16 `json:"total_surface"`
+	Covered_surface NullInt16 `json:"covered_surface"`
+	Total_surface   NullInt16 `json:"total_surface"`
 }
 type VentureBuilding struct {
 	*Building
-	Covered_surface sql.NullInt16 `json:"covered_surface"`
-	Total_surface   sql.NullInt16 `json:"total_surface"`
-	Pozo            bool          `json:"pozo"`
-	In_progress     bool          `json:"in_progress"`
+	Covered_surface NullInt16 `json:"covered_surface"`
+	Total_surface   NullInt16 `json:"total_surface"`
+	Pozo            bool      `json:"pozo"`
+	In_progress     bool      `json:"in_progress"`
 }
