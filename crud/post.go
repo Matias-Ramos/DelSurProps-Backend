@@ -97,7 +97,7 @@ func generateInsertQuery(data interface{}, tableName string) string {
 				internalValue := embeddedValues.Field(j).Interface()
 				sqlColumns = append(sqlColumns, internalField.Name)
 
-				if isImgLinks := internalField.Type == reflect.TypeOf([]string{}); isImgLinks {
+				if isImgsField := internalField.Type == reflect.TypeOf([]string{}); isImgsField {
 					values = append(values, fmt.Sprintf("'{%s}'", strings.Join(internalValue.([]string), ",")))
 				} else {
 					values = append(values, fmt.Sprintf("'%v'", internalValue))
