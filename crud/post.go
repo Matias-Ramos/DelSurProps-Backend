@@ -20,9 +20,10 @@ import (
 
 /*
 postData processes incoming form data:
-- Determines the appropriate struct based on the category
-- Adds an ID to the form data and populates the corresponding struct
-- Calls the query generator with the resulting struct
+- Determines the appropriate struct based on the category.
+- Adds an ID to the form data and populates the corresponding struct.
+- Calls the query generator with the resulting struct.
+- Executes the query in the DB.
 */
 func PostData(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +97,7 @@ Note that in models.go, the Building struct is embedded into RentBuilding, Sales
 */
 func generateInsertQuery(data interface{}, tableName string) string {
 	var sqlColumns []string
-	var values []string
+	var sqlValues []string
 	building := reflect.ValueOf(data).Elem()
 
 	for i := 0; i < building.NumField(); i++ {
@@ -111,37 +112,17 @@ func generateInsertQuery(data interface{}, tableName string) string {
 				internalField := embeddedValues.Type().Field(j)
 				internalValue := embeddedValues.Field(j).Interface()
 				sqlColumns = append(sqlColumns, internalField.Name)
-
-				if isImgsField := internalField.Type == reflect.TypeOf([]string{}); isImgsField {
-					values = append(values, fmt.Sprintf("'{%s}'", strings.Join(internalValue.([]string), ",")))
-				} else {
-					switch v := internalValue.(type) {
-					case models.NullInt16:
-						if v.Valid {
-							values = append(values, fmt.Sprintf("'%v'", v.Int16))
-						} else {
-							values = append(values, "NULL")
-						}
-					case models.NullString:
-						if v.Valid {
-							values = append(values, fmt.Sprintf("'%v'", v.String))
-						} else {
-							values = append(values, "NULL")
-						}
-					default:
-						values = append(values, fmt.Sprintf("'%v'", v))
-					}
-				}
+				sqlValues = append(sqlValues, parseEmbeddedValues(internalField, internalValue))
 			}
 		} else {
 			// top-level fields on RentBuilding / SalesBuilding / VentureBuilding
 			sqlColumns = append(sqlColumns, externalField.Name)
-			values = append(values, fmt.Sprintf("'%v'", externalValue))
+			sqlValues = append(sqlValues, fmt.Sprintf("'%v'", externalValue))
 		}
 	}
 
 	sqlColumnsFormatted := strings.Join(convertToLowerCase(sqlColumns), ", ")
-	sqlValuesFormatted := strings.Join(values, ", ")
+	sqlValuesFormatted := strings.Join(sqlValues, ", ")
 
 	query := fmt.Sprintf("INSERT INTO public.%ss (%s) VALUES (%s);", tableName, sqlColumnsFormatted, sqlValuesFormatted)
 	return query
@@ -152,4 +133,24 @@ func convertToLowerCase(sqlColumns []string) []string {
 		lowercaseColumns = append(lowercaseColumns, strings.ToLower(col))
 	}
 	return lowercaseColumns
+}
+func parseEmbeddedValues(internalField reflect.StructField, internalValue interface{}) string {
+	if isImgsField := internalField.Type == reflect.TypeOf([]string{}); isImgsField {
+		return fmt.Sprintf("'{%s}'", strings.Join(internalValue.([]string), ","))
+	}
+
+	switch v := internalValue.(type) {
+	case models.NullInt16:
+		if v.Valid {
+			return fmt.Sprintf("'%v'", v.Int16)
+		}
+		return "NULL"
+	case models.NullString:
+		if v.Valid {
+			return fmt.Sprintf("'%v'", v.String)
+		}
+		return "NULL"
+	default:
+		return fmt.Sprintf("'%v'", v)
+	}
 }

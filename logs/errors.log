@@ -10,3 +10,4 @@
 2023/09/05 19:19:32 error on db.Exec() - post method: pq: la sintaxis de entrada no es válida para tipo smallint: «{{1 true}}»
 2023/09/05 19:36:13 error on db.Exec() - post method: pq: la sintaxis de entrada no es válida para tipo smallint: «»
 2023/09/05 19:38:53 error on db.Exec() - post method: pq: literal de array mal formado: «12»
+2023/09/05 20:10:43 error on db.Exec() - post method: pq: la sintaxis de entrada no es válida para tipo smallint: «{{0 false}}»
