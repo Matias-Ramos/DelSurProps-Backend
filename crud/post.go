@@ -77,6 +77,8 @@ func PostData(db *sql.DB) http.HandlerFunc {
 		}
 
 		query := generateInsertQuery(buildingObj, category)
+		fmt.Println("query")
+		fmt.Println(query)
 		_, err = db.Exec(query)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -113,7 +115,22 @@ func generateInsertQuery(data interface{}, tableName string) string {
 				if isImgsField := internalField.Type == reflect.TypeOf([]string{}); isImgsField {
 					values = append(values, fmt.Sprintf("'{%s}'", strings.Join(internalValue.([]string), ",")))
 				} else {
-					values = append(values, fmt.Sprintf("'%v'", internalValue))
+					switch v := internalValue.(type) {
+					case models.NullInt16:
+						if v.Valid {
+							values = append(values, fmt.Sprintf("'%v'", v.Int16))
+						} else {
+							values = append(values, "NULL")
+						}
+					case models.NullString:
+						if v.Valid {
+							values = append(values, fmt.Sprintf("'%v'", v.String))
+						} else {
+							values = append(values, "NULL")
+						}
+					default:
+						values = append(values, fmt.Sprintf("'%v'", v))
+					}
 				}
 			}
 		} else {
