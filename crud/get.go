@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -13,47 +14,49 @@ import (
 	"github.com/lib/pq"
 )
 
-func GetDBdata(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func GetDBdata(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 
-	// *******************************
-	// DB data gathering through SQL querying.
-	category := chi.URLParam(r, "category")
-	urlQyParams := r.URL.Query()
-	query, args := generateGetQuery(category, urlQyParams)
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Printf("err at db.Query - GetDBdata: %v", err)
-		return
-	}
-	defer rows.Close()
-
-	// *******************************
-	// Slice of structs initialization.
-	var buildings []interface{}
-	for rows.Next() {
-		newBuilding, err := initBuildingType(category, rows)
+		// *******************************
+		// DB data gathering through SQL querying.
+		category := chi.URLParam(r, "category")
+		urlQyParams := r.URL.Query()
+		query, args := generateGetQuery(category, urlQyParams)
+		rows, err := db.Query(query, args...)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			fmt.Printf("err at rows.Next() -> initBuildingType - GetDBdata: %v", err)
+			log.Printf("err at db.Query - GetDBdata: %v", err)
 			return
 		}
-		buildings = append(buildings, newBuilding)
-	}
+		defer rows.Close()
 
-	// *******************************
-	// Convertion from Go slice to JSON.
-	jsonData, err := json.Marshal(buildings)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Printf("err at json.Marshal() - GetDBdata: %v", err)
-		return
-	}
+		// *******************************
+		// Slice of structs initialization.
+		var buildings []interface{}
+		for rows.Next() {
+			newBuilding, err := initBuildingType(category, rows)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				log.Printf("err at rows.Next() -> initBuildingType - GetDBdata: %v", err)
+				return
+			}
+			buildings = append(buildings, newBuilding)
+		}
 
-	// *******************************
-	// Sending the data to the requester.
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonData)
+		// *******************************
+		// Convertion from Go slice to JSON.
+		jsonData, err := json.Marshal(buildings)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("err at json.Marshal() - GetDBdata: %v", err)
+			return
+		}
+
+		// *******************************
+		// Sending the data to the requester.
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
+	}
 }
 
 /*

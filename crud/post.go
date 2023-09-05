@@ -1,9 +1,11 @@
 package crud
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"reflect"
@@ -22,62 +24,73 @@ postData processes incoming form data:
 - Adds an ID to the form data and populates the corresponding struct
 - Calls the query generator with the resulting struct
 */
-func PostData(w http.ResponseWriter, r *http.Request) {
-	category := chi.URLParam(r, "category")
+func PostData(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		category := chi.URLParam(r, "category")
 
-	var buildingObj interface{}
-	switch category {
-	case "alquiler_inmueble":
-		buildingObj = &models.RentBuilding{}
-	case "venta_inmueble":
-		buildingObj = &models.SalesBuilding{Building: &models.Building{}}
-	case "emprendimiento":
-		buildingObj = &models.VentureBuilding{Building: &models.Building{}}
+		var buildingObj interface{}
+		switch category {
+		case "alquiler_inmueble":
+			buildingObj = &models.RentBuilding{}
+		case "venta_inmueble":
+			buildingObj = &models.SalesBuilding{Building: &models.Building{}}
+		case "emprendimiento":
+			buildingObj = &models.VentureBuilding{Building: &models.Building{}}
+		}
+
+		// io.ReadCloser to []byte
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("error on io.ReadAll() - post method: %s", err)
+			return
+		}
+
+		// []byte to map
+		var m map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &m); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("error on json.Unmarshal() - []byte to map - post method: %s", err)
+			return
+		}
+
+		// Add an Id to the map
+		id := int64(time.Now().UnixNano()) + int64(rand.Intn(1000000))
+		m["id"] = id
+
+		priceInt, _ := strconv.Atoi(m["price"].(string))
+		m["price"] = priceInt
+
+		// Recreate the JSON
+		newData, err := json.Marshal(m)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("error on json.Marshal() - post method: %s", err)
+			return
+		}
+
+		// Populate the buildingObj
+		if err := json.Unmarshal(newData, buildingObj); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("error on json.Unmarshal() - post method: %s", err)
+			return
+		}
+
+		query := generateInsertQuery(buildingObj, category)
+		_, err = db.Exec(query)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("error on db.Exec() - post method: %s", err)
+		}
+
+		w.Write([]byte("Okay"))
+
 	}
-
-	// io.ReadCloser to []byte
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Printf("error on io.ReadAll() - post method: %s", err)
-		return
-	}
-
-	// []byte to map
-	var m map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &m); err != nil {
-		fmt.Printf("error on json.Unmarshal() - []byte to map - post method: %s", err)
-		return
-	}
-
-	// Add an Id to the map
-	id := int64(time.Now().UnixNano()) + int64(rand.Intn(1000000))
-	m["id"] = id
-
-	priceInt, _ := strconv.Atoi(m["price"].(string))
-	m["price"] = priceInt
-
-
-	// Recreate the JSON
-	newData, err := json.Marshal(m)
-	if err != nil {
-		fmt.Printf("error on json.Marshal() - post method: %s", err)
-		return
-	}
-
-	// Populate the buildingObj
-	if err := json.Unmarshal(newData, buildingObj); err != nil {
-		fmt.Printf("error on json.Unmarshal() - post method: %s", err)
-		return
-	}
-
-	fmt.Println(generateInsertQuery(buildingObj, category))
-	w.Write([]byte("Okay"))
 }
 
-
 /*
- Note that the Building struct is embedded into RentBuilding, SalesBuilding and VentureBuilding.
- "generateInsertQuery" iterates through fields at both top level (RB,SB,VB) and low level (Building) fields.
+Note that in models.go, the Building struct is embedded into RentBuilding, SalesBuilding and VentureBuilding.
+"generateInsertQuery" iterates through fields at both top level (RB,SB,VB) and low level (Building) fields.
 */
 func generateInsertQuery(data interface{}, tableName string) string {
 	var sqlColumns []string
@@ -112,7 +125,7 @@ func generateInsertQuery(data interface{}, tableName string) string {
 
 	sqlColumnsFormatted := strings.Join(convertToLowerCase(sqlColumns), ", ")
 	sqlValuesFormatted := strings.Join(values, ", ")
-	
+
 	query := fmt.Sprintf("INSERT INTO public.%ss (%s) VALUES (%s);", tableName, sqlColumnsFormatted, sqlValuesFormatted)
 	return query
 }
