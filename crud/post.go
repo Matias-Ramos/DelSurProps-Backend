@@ -112,12 +112,12 @@ func generateInsertQuery(data interface{}, tableName string) string {
 				internalField := embeddedValues.Type().Field(j)
 				internalValue := embeddedValues.Field(j).Interface()
 				sqlColumns = append(sqlColumns, internalField.Name)
-				sqlValues = append(sqlValues, parseEmbeddedValues(internalField, internalValue))
+				sqlValues = append(sqlValues, parseToSqlSyntax(internalField, internalValue))
 			}
 		} else {
 			// top-level fields on RentBuilding / SalesBuilding / VentureBuilding
 			sqlColumns = append(sqlColumns, externalField.Name)
-			sqlValues = append(sqlValues, fmt.Sprintf("'%v'", externalValue))
+			sqlValues = append(sqlValues, parseToSqlSyntax(externalField, externalValue))
 		}
 	}
 
@@ -134,7 +134,7 @@ func convertToLowerCase(sqlColumns []string) []string {
 	}
 	return lowercaseColumns
 }
-func parseEmbeddedValues(internalField reflect.StructField, internalValue interface{}) string {
+func parseToSqlSyntax(internalField reflect.StructField, internalValue interface{}) string {
 	if isImgsField := internalField.Type == reflect.TypeOf([]string{}); isImgsField {
 		return fmt.Sprintf("'{%s}'", strings.Join(internalValue.([]string), ","))
 	}
