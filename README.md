@@ -1,10 +1,10 @@
-# Nombre del proyecto
+# Project Name
 DelSurProps - backend
 
-## Sobre el proyecto
+## About the project
 
-### Motivo
-La estructura de los datos requeridos por el proyecto generaron la necesidad de una base de datos SQL. Por lo tanto, opté implementar una API que comunique el front end hecho en React con una base de datos hecha en PostgreSQL.
+### Purpose
+The data structure required by the project led to the usage of an SQL database. Therefore, I chose to implement an API that connects the React frontend with a PostgreSQL database.
 
 ### Link
 delsurprops.com.ar
@@ -12,13 +12,11 @@ delsurprops.com.ar
 ### Hosting
 donweb.com
 
-## Código
+## Code
 
-### Estructura del programa
+### Program structure
 - func main()
-  - getDBdata()
-    - generateSQLquery()
-    - initBuildingType() 
+TO BE COMPLETED!!!!!!!
 
 ### Lenguaje
 Golang
@@ -39,9 +37,11 @@ Golang
 - ?covered_surface_init=integer / ?covered_surface_limit=integer
 - ?building_status= in_progress-or-pozo/pozo/in_progress
 
-### Ejecución del proyecto
-1. Crear archivo .env en el directorio root del proyecto con el siguiente contenido:
-USER="new_user"
-PWD="secure777"
-DB_NAME="Inmobiliaria_BD"
-2. Ejecutar "go run main.go" en la terminal del IDE. Acto siguiente, generar una http request al host "http://127.0.0.1:8080/api/{category}" con cURL, Postman, Insomnia (u otro) del tipo "get" a los endpoints detallados en el punto anterior.
+### Running the project
+1. Create a .env file in the root directory of the project with the following content:
+PGS_USER="new_user"
+PGS_PWD="secure777"
+PGS_DB_NAME="Inmobiliaria_BD"
+API_KEY="1234"
+JWT_SECRET="super-secret-auth-key"
+2. Run "go run main.go" in the IDE terminal. Next, make an HTTP request to the host "http://127.0.0.1:8080/api/{category}" using cURL, Postman, Insomnia (or another tool) with a "get" request to the endpoints detailed in the previous section.
