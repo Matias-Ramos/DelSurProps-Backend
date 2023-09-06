@@ -38,7 +38,7 @@ func init() {
 func main() {
 
 	//******************************************
-	// SV Init
+	// SV Init.
 
 	sv := chi.NewRouter()
 	sv.Use(middleware.Recoverer)
@@ -51,7 +51,7 @@ func main() {
 	log.SetOutput(logFile)
 
 	//******************************************
-	// DB Init
+	// DB Init.
 
 	db, sqlErr := sql.Open("postgres", 
 	fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", pgsUser, pgsPwd, pgsDbName))
