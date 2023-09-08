@@ -66,7 +66,7 @@ func main() {
 
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
@@ -78,12 +78,11 @@ func main() {
 	// Handlers.
 
 	sv.Get("/api/{category}", crud.GetDBdata(db))
-
-	sv.Post("/admin/jwt", auth.GetJwt(apiKey, jwtSecret))
 	sv.With(auth.ValidateJwt(jwtSecret)).Post("/admin/post/{category}", http.HandlerFunc(crud.PostData(db)))
-
-	// sv.Post("/admin/post/{category}", crud.PostData)
-
+	sv.With(auth.ValidateJwt(jwtSecret)).Delete("/admin/delete/{category}", http.HandlerFunc(crud.DeleteData(db)))
+	
+	sv.Post("/admin/jwt", auth.GetJwt(apiKey, jwtSecret))
+	
 	//******************************************
 	// Turning on the server.
 

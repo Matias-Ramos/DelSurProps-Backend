@@ -11,7 +11,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/Matias-Ramos/Inmobiliaria-backend-go/models"
 
@@ -56,7 +55,7 @@ func PostData(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Add an Id to the map
-		id := int64(time.Now().UnixNano()) + int64(rand.Intn(1000000))
+		id := int64(rand.Intn(999999999999999))
 		m["id"] = id
 
 		priceInt, _ := strconv.Atoi(m["price"].(string))
@@ -78,16 +77,11 @@ func PostData(db *sql.DB) http.HandlerFunc {
 		}
 
 		query := generateInsertQuery(buildingObj, category)
-		fmt.Println("query")
-		fmt.Println(query)
 		_, err = db.Exec(query)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			log.Printf("error on db.Exec() - post method: %s", err)
 		}
-
-		w.Write([]byte("Okay"))
-
 	}
 }
 

@@ -14,6 +14,8 @@ import (
 	"github.com/lib/pq"
 )
 
+
+
 func GetDBdata(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -59,6 +61,24 @@ func GetDBdata(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+// **************************
+// The attributes that share the same SQL query syntax are grouped in this map.
+var commonFieldsMapping = map[string]string{
+	"price_init":            "price >=",
+	"price_limit":           "price <=",
+	"env_init":              "env >=",
+	"env_limit":             "env <=",
+	"bedroom_init":          "bedrooms >=",
+	"bedroom_limit":         "bedrooms <=",
+	"bathroom_init":         "bathrooms >=",
+	"bathroom_limit":        "bathrooms <=",
+	"garage_init":           "garages >=",
+	"garage_limit":          "garages <=",
+	"total_surface_init":    "total_surface >=",
+	"total_surface_limit":   "total_surface <=",
+	"covered_surface_init":  "covered_surface >=",
+	"covered_surface_limit": "covered_surface <=",
+}
 /*
 1. generateGetQuery returns "query" and "args".
 The returned "query" contains placeholders like $1, $2, which will be replaced by the values in "args" respectively.
@@ -68,27 +88,10 @@ func generateGetQuery(category string, urlQyParams map[string][]string) (string,
 	args := []interface{}{}
 	sqlConditions := []string{}
 	var queriedProperties []string
-	// The attributes within expressionMapping share same SQL query syntax so I grouped them up.
-	expressionMapping := map[string]string{
-		"price_init":            "price >=",
-		"price_limit":           "price <=",
-		"env_init":              "env >=",
-		"env_limit":             "env <=",
-		"bedroom_init":          "bedrooms >=",
-		"bedroom_limit":         "bedrooms <=",
-		"bathroom_init":         "bathrooms >=",
-		"bathroom_limit":        "bathrooms <=",
-		"garage_init":           "garages >=",
-		"garage_limit":          "garages <=",
-		"total_surface_init":    "total_surface >=",
-		"total_surface_limit":   "total_surface <=",
-		"covered_surface_init":  "covered_surface >=",
-		"covered_surface_limit": "covered_surface <=",
-	}
 
 	for fieldKey, fieldValue := range urlQyParams {
-		if _, ok := expressionMapping[fieldKey]; ok {
-			args, sqlConditions, queriedProperties = handleExpression(args, sqlConditions, queriedProperties, expressionMapping, fieldKey, fieldValue)
+		if _, isCommonField := commonFieldsMapping[fieldKey]; isCommonField {
+			args, sqlConditions, queriedProperties = handleCommonField(args, sqlConditions, queriedProperties, fieldKey, fieldValue)
 		} else if fieldKey == "location" {
 			args, sqlConditions = handleLocationField(args, sqlConditions, fieldValue)
 		} else if fieldKey == "building_status" {
@@ -101,29 +104,33 @@ func generateGetQuery(category string, urlQyParams map[string][]string) (string,
 	}
 	return query, args
 }
-func handleExpression(args []interface{}, sqlConditions []string, queriedProperties []string, expressionMapping map[string]string, fieldKey string, fieldValue []string) ([]interface{}, []string, []string) {
-	expression := expressionMapping[fieldKey]
+
+// **************************
+// 1.1- Argument generators.
+
+func handleCommonField(args []interface{}, sqlConditions []string, queriedProperties []string, fieldKey string, fieldValue []string) ([]interface{}, []string, []string) {
+	expression := commonFieldsMapping[fieldKey]
 	sqlConditions = append(
 		sqlConditions, fmt.Sprintf("(%s $%d %s)",
 			expression,
 			len(args)+1,
-			func() string {
-				wasQueried := false
-				words := strings.Fields(expression)
-				for _, value := range queriedProperties {
-					if words[0] == value {
-						wasQueried = true
-					}
-				}
-				if wasQueried {
-					return ""
-				} else {
-					queriedProperties = append(queriedProperties, words[0])
-					return fmt.Sprintf("OR %s IS NULL", words[0])
-				}
-			}()))
+			includeNullValues(expression, queriedProperties)))
 	args = append(args, fieldValue[0])
 	return args, sqlConditions, queriedProperties
+}
+func includeNullValues(expression string, queriedProperties []string) string {
+	wasQueried := false
+	words := strings.Fields(expression)
+	for _, value := range queriedProperties {
+		if words[0] == value {
+			wasQueried = true
+		}
+	}
+	if wasQueried {
+		return ""
+	} else {
+		return fmt.Sprintf("OR %s IS NULL", words[0])
+	}
 }
 func handleLocationField(args []interface{}, sqlConditions []string, fieldValue []string) ([]interface{}, []string) {
 	args = append(args, "%"+fieldValue[0]+"%")
@@ -145,6 +152,7 @@ func handleBuildingStatusField(args []interface{}, sqlConditions []string, field
 	return args, sqlConditions
 }
 
+// **************************
 /*
 2. initBuilingType mutates the *sql.Rows from generateGetQuery() into a Go interface{}.
 Such result will hold the building properties.

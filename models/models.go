@@ -56,9 +56,9 @@ func (nsP *NullString) UnmarshalJSON(data []byte) error {
 // Building structures
 
 type Building struct {
-	Id             int64        `json:"id"`
+	Id             int64      `json:"id"`
 	Location       string     `json:"location"`
-	Price          int        `json:"price"`
+	Price          int        `json:"price"`	
 	Env            NullInt16  `json:"env"`
 	Bedrooms       NullInt16  `json:"bedrooms"`
 	Bathrooms      NullInt16  `json:"bathrooms"`
