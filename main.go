@@ -47,8 +47,8 @@ func main() {
 	// Logging Init.
 
 	logFile := logs.OpenLogFile()
-	defer logFile.Close()
 	log.SetOutput(logFile)
+	defer logFile.Close()
 
 	//******************************************
 	// DB Init.

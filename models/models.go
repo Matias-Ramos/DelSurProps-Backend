@@ -9,7 +9,7 @@ import (
 )
 
 // **************************************
-// custom React null receiving data types.
+// Custom null receiving data types.
 type NullInt16 struct {
 	sql.NullInt16
 }
@@ -18,7 +18,7 @@ type NullString struct {
 }
 
 // ******************************************************
-// UnmarshalJSON implements the json.Unmarshaler interface
+// UnmarshalJSON implements the json.Unmarshal interface
 
 func (niP *NullInt16) UnmarshalJSON(data []byte) error {
 	stringedValue := strings.Trim(string(data), `"`)

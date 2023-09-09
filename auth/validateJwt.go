@@ -33,7 +33,7 @@ func ValidateJwt(jwtSecret string) func(next http.Handler) http.Handler {
 /*
 parseJwtToken parses a client-supplied token string into an actual Jwt,
 validates it using a HMAC-based signing method,
-and returns the parsed token or an error
+and returns the parsed token or an error to ValidateJwt.
 */
 func parseJwtToken(clientToken string, jwtSecret string, w http.ResponseWriter) (*jwt.Token, error) {
 	token, err := jwt.Parse(clientToken, func(t *jwt.Token) (interface{}, error) {

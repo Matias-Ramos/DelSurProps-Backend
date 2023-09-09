@@ -28,8 +28,8 @@ func GetJwt(apiKey, jwtSecret string) http.HandlerFunc {
 			log.Printf("error on json.Unmarshal() - []byte to map - GetJwt(): %s", err)
 			return
 		}
+		
 		frontEndKey := m["Access"]
-
 		if frontEndKey != "" && frontEndKey == apiKey {
 			token, err := CreateJwt(jwtSecret)
 			if err != nil {

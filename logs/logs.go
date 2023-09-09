@@ -6,7 +6,7 @@ import (
 )
 
 /*
-This function will check if the log file exists and open it in append mode.
+OpenLogFile will check if the log file exists and open it in append mode.
 If the log file doesn't exist, it will create a new one.
 */
 func OpenLogFile() (*os.File) {
