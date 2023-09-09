@@ -40,6 +40,7 @@ I won't go through all the program structure, but only through the three files t
 #### auth
 ![Auth data flow diagram]("./diagrams/auth_diagram.png")
 
+
 ### Endpoints
 #### GET
 - http://localhost:8080/api/venta_inmuebles
@@ -84,7 +85,7 @@ I won't go through all the program structure, but only through the three files t
 
 3. Create a database with a user, password and database name as shown in the previous point. As for the tables:
 
-#### all tables:
+#### common fields for all tables:
 - id - bigint
 - location - text
 - price - integer
@@ -115,23 +116,23 @@ I won't go through all the program structure, but only through the three files t
 
 4. Hit "localhost:8080/admin/jwt" with a get request. Inside the header, add a key value pair "Access":1234. You will receive a token, save it. 
 
-5. Hit "localhost:8080/admin/alquiler_inmueble" (note that the category is singular, unlike the database name that is plural) with a post request. 
-Inside the header, add a key value pair "Authentication": jwtToken, being jwtToken the value you saved in the previous step.
+5. Hit "localhost:8080/admin/alquiler_inmueble" (note that the category is singular, unlike the database name that is plural) with a post request. <br>
+Inside the header, add a key value pair "Authentication": jwtToken, being jwtToken the value you saved in the previous step.<br>
 Inside the body, this is an example of a valid value to send in JSON format: 
 *{"location":"1","price":"2","currency":"usd","env":"3","bedrooms":"4","bathrooms":"5","garages":"6","link_ml":"7","link_zonaprop":"8","link_argenprop":"9","image_links":["10","11"]}*
 
 ## DELETE
 
-6. Hit "localhost:8080/admin/alquiler_inmuebles".
-Inside the header, add a key value pair "Authentication": jwtToken, being jwtToken the value you saved in the previous step.
+6. Hit "localhost:8080/admin/alquiler_inmuebles". <br>
+Inside the header, add a key value pair "Authentication": jwtToken, being jwtToken the value you saved in the previous step. <br>
 Inside the body, this is an example of a valid value to send in JSON format: 
-*{"buildingId": 1628372893729}*
+*{"buildingId": 1628372893729}* <br>
 Note that in order to know the ID you can either check the database, or use the Get request that will be shown next.
 
 ## GET
 
-7. Hit "localhost:8080/admin/alquiler_inmuebles".
-No query params will retrieve all the records. 
+7. Hit "localhost:8080/admin/alquiler_inmuebles". <br>
+No query params will retrieve all the records.  <br>
 The possible queries may be find in the previous section "Queries", but here is an example: <br>
 /alquiler_inmuebles?location=Villa+Crespo&price_init=10000&price_limit=20000&env_init=1&env_limit=7&bedroom_init=1&bedroom_limit=7&bathroom_init=1&bathroom_limit=7&garage_init=0&garage_limit=7
 
