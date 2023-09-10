@@ -13,7 +13,8 @@ delsurprops.com.ar
 https://github.com/Matias-Ramos/Inmobiliaria
 
 ### Full stack diagram
-![Full-stack data flow diagram]("./diagrams/architecture.png")
+![architecture](https://github.com/Matias-Ramos/Inmobiliaria-backend-go/assets/99888423/5e9e2a4c-e4b5-4ede-80fc-4a855501f47c)
+
 
 ## Code
 
@@ -26,7 +27,7 @@ I won't go through all the program structure, but only through the three files t
 - PostData()
   - generateInsertQuery()
     - convertToLowerCase()
-    - ParseToSqlSyntax()
+    - parseToSqlSyntax()
 
 #### get.go
 - GetDBdata()
@@ -38,7 +39,8 @@ I won't go through all the program structure, but only through the three files t
   - initBuildingType()
 
 #### auth
-![Auth data flow diagram]("./diagrams/auth_diagram.png")
+![auth_diagram](https://github.com/Matias-Ramos/Inmobiliaria-backend-go/assets/99888423/47b66fc7-b929-4c2c-a003-5a50b97574c2)
+
 
 
 ### Endpoints
@@ -86,14 +88,14 @@ I won't go through all the program structure, but only through the three files t
 3. Create a database with a user, password and database name as shown in the previous point. As for the tables:
 
 #### common fields for all tables:
-- id - bigint
-- location - text
-- price - integer
+- id - bigint notnull
+- location - text notnull
+- price - integer notnull
 - env - smallint
 - bedrooms - smallint
 - bathrooms - smallint
 - garages - smallint
-- images - text[]
+- images - text[] notnull
 - link_ml - text
 - link_zonaprop - text
 - link_argenprop - text
@@ -108,8 +110,8 @@ I won't go through all the program structure, but only through the three files t
 #### emprendimientos: 
 - total_surface - smallint
 - covered_surface - smallint
-- pozo - boolean
-- in_progress - boolean
+- pozo - boolean notnull
+- in_progress - boolean notnull
 
 
 ## POST
@@ -135,4 +137,3 @@ Note that in order to know the ID you can either check the database, or use the 
 No query params will retrieve all the records.  <br>
 The possible queries may be find in the previous section "Queries", but here is an example: <br>
 /alquiler_inmuebles?location=Villa+Crespo&price_init=10000&price_limit=20000&env_init=1&env_limit=7&bedroom_init=1&bedroom_limit=7&bathroom_init=1&bathroom_limit=7&garage_init=0&garage_limit=7
-
