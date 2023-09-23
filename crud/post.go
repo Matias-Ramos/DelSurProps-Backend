@@ -55,7 +55,7 @@ func PostData(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Add an Id to the map
-		id := int64(rand.Intn(999999999999999))
+		id := int64(rand.Intn(9999999999))
 		m["id"] = id
 
 		priceInt, _ := strconv.Atoi(m["price"].(string))

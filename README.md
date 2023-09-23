@@ -13,7 +13,7 @@ delsurprops.com.ar
 https://github.com/Matias-Ramos/Inmobiliaria
 
 ### Full stack diagram
-![architecture](https://github.com/Matias-Ramos/Inmobiliaria-backend-go/assets/99888423/5e9e2a4c-e4b5-4ede-80fc-4a855501f47c)
+![Full stack architecture diagram](architecture.png)
 
 
 ## Code
@@ -39,7 +39,8 @@ I won't go through all the program structure, but only through the three files t
   - initBuildingType()
 
 #### auth
-![auth_diagram](https://github.com/Matias-Ramos/Inmobiliaria-backend-go/assets/99888423/47b66fc7-b929-4c2c-a003-5a50b97574c2)
+
+![auth_diagram](auth_diagram.png)
 
 
 
