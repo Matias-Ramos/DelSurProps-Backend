@@ -7,13 +7,19 @@ DelSurProps - backend
 The data structure required by the project led to the usage of an SQL database. Therefore, I chose to implement an API that connects the React frontend with a PostgreSQL database.
 
 ### Link
-delsurprops.com.ar
+delsurprops.com.ar (site shut down as per client request) DEMO: https://youtu.be/kzu_LFJki7s
 
 ### Front end
-https://github.com/Matias-Ramos/Inmobiliaria
+[https://github.com/Matias-Ramos/Inmobiliaria](https://github.com/Matias-Ramos/DelSurProps-FrontEnd)
 
 ### Full stack diagram
 ![Full stack architecture diagram](architecture.png)
+
+### Challenges on this project:
+- First time writting a Golang API.
+- Learnt and implemented JWT for session authentication.
+- SQL query generation on the backend.
+- REST API architecture.
 
 
 ## Code
