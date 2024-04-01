@@ -3,11 +3,16 @@ DelSurProps - backend
 
 ## About the project
 
-### Purpose
-The data structure required by the project led to the usage of an SQL database. Therefore, I chose to implement an API that connects the React frontend with a PostgreSQL database.
+### What it is 
+An API that connects the React frontend with a PostgreSQL database.
+
+### What it does
+1. GET: Filters real state objects based on the input the API receives and returns the output back to the frontend.
+2. DELETE - POST: Deletes and Creates real state objects based on the frontend input.
 
 ### Link
-delsurprops.com.ar (site shut down as per client request) DEMO: https://youtu.be/kzu_LFJki7s
+- Video of the working app w/ backend and frontend: [https://youtu.be/kzu_LFJki7s](https://youtu.be/kzu_LFJki7s)
+- delsurprops.com.ar (site shut down as per client request)
 
 ### Front end
 [https://github.com/Matias-Ramos/Inmobiliaria](https://github.com/Matias-Ramos/DelSurProps-FrontEnd)
@@ -38,8 +43,8 @@ I won't go through all the program structure, but only through the three files t
 #### get.go
 - GetDBdata()
   - generateGetQuery()
-    - handleLocationField()
-    - handleBuildingStatusField()
+    - handleLocationField() - due to query syntax uniqueness, a specific method was required.
+    - handleBuildingStatusField() - due to query syntax uniqueness, a specific method was required.
     - handleCommonField()
       - includeNullValues()
   - initBuildingType()
